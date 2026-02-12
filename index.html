@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Squad Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .status-grid {
+            padding: 20px;
+        }
+
+        .agent-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-card.working {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .agent-card.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.idle {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.working {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .status-badge.error {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .current-task {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .last-active {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .refresh-indicator {
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            background: #f9fafb;
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .agent-card {
+                padding: 16px;
+            }
+
+            .agent-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent Squad Status</h1>
+            <p>Real-time status monitoring</p>
+        </div>
+
+        <div id="status-content">
+            <div class="loading">
+                <p>Loading agent status...</p>
+            </div>
+        </div>
+
+        <div class="refresh-indicator">
+            Auto-refreshes every 30 seconds
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Replace with your Supabase details
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        async function fetchAgentStatus() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/agent_status?order=agent_id.asc`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const agents = await response.json();
+                renderAgents(agents);
+            } catch (error) {
+                console.error('Error fetching agent status:', error);
+                showError(error.message);
+            }
+        }
+
+        function renderAgents(agents) {
+            const content = document.getElementById('status-content');
+
+            if (agents.length === 0) {
+                content.innerHTML = '<div class="loading"><p>No agents found</p></div>';
+                return;
+            }
+
+            const html = `
+                <div class="status-grid">
+                    ${agents.map(agent => `
+                        <div class="agent-card ${agent.status}">
+                            <div class="agent-header">
+                                <div class="agent-name">${escapeHtml(agent.agent_name)}</div>
+                                <span class="status-badge ${agent.status}">${agent.status}</span>
+                            </div>
+                            ${agent.current_task ? `
+                                <div class="current-task">
+                                    📋 ${escapeHtml(agent.current_task)}
+                                </div>
+                            ` : ''}
+                            <div class="last-active">
+                                Last active: ${formatDate(agent.last_active_at)}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('status-content');
+            content.innerHTML = `
+                <div class="error-message">
+                    <strong>Error loading agent status</strong><br>
+                    ${escapeHtml(message)}
+                    <br><br>
+                    <small>Make sure the database tables are created and SUPABASE_URL/KEY are configured.</small>
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initial load
+        fetchAgentStatus();
+
+        // Auto-refresh every 30 seconds
+        setInterval(fetchAgentStatus, 30000);
+    </script>
+</body>
+</html>
