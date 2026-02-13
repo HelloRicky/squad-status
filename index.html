@@ -268,7 +268,10 @@
         function renderAgents(agents) {
             const content = document.getElementById('status-content');
 
-            if (agents.length === 0) {
+            // Filter out agents with null or missing agent_name
+            const validAgents = agents.filter(a => a.agent_name != null);
+
+            if (validAgents.length === 0) {
                 content.innerHTML = `
                     <div class="text-center py-16">
                         <p class="text-slate-400 text-lg">No agents found</p>
@@ -278,8 +281,8 @@
             }
 
             // Separate Ducki from team members
-            const ducki = agents.find(a => a.agent_name.includes('Ducki'));
-            const team = agents.filter(a => !a.agent_name.includes('Ducki'));
+            const ducki = validAgents.find(a => a.agent_name.includes('Ducki'));
+            const team = validAgents.filter(a => !a.agent_name.includes('Ducki'));
 
             const html = `
                 <div class="org-chart-container">
