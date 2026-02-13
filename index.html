@@ -3,191 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Squad Status</title>
+    <title>Squad Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-
-        .container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .status-grid {
-            padding: 20px;
-        }
-
+        
         .agent-card {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid #667eea;
+            animation: slide-up 0.3s ease-out;
         }
-
-        .agent-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .agent-card.working {
-            border-left-color: #f59e0b;
-            background: #fffbeb;
-        }
-
-        .agent-card.error {
-            border-left-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        .agent-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .agent-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-badge.idle {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-badge.working {
-            background: #fed7aa;
-            color: #92400e;
-        }
-
-        .status-badge.error {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        .current-task {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
-            font-style: italic;
-        }
-
-        .last-active {
-            color: #9ca3af;
-            font-size: 12px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7280;
-        }
-
-        .error-message {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 20px;
-            text-align: center;
-        }
-
-        .refresh-indicator {
-            text-align: center;
-            padding: 12px;
-            font-size: 12px;
-            color: #9ca3af;
-            background: #f9fafb;
-        }
-
-        @media (max-width: 640px) {
-            .header h1 {
-                font-size: 22px;
-            }
-
-            .agent-card {
-                padding: 16px;
-            }
-
-            .agent-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
+        
+        .pulse-dot {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 Agent Squad Status</h1>
-            <p>Real-time status monitoring</p>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Squad Status
+            </h1>
+            <p class="text-slate-400 text-sm md:text-base">Real-time agent activity dashboard</p>
         </div>
 
-        <div id="status-content">
-            <div class="loading">
-                <p>Loading agent status...</p>
+        <!-- Refresh Controls -->
+        <div class="flex items-center justify-center gap-3 mb-8">
+            <button 
+                id="refreshBtn"
+                onclick="manualRefresh()"
+                class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh
+            </button>
+            <div class="bg-slate-800/50 backdrop-blur-sm px-4 py-3 rounded-lg border border-slate-700/50">
+                <span class="text-slate-400 text-sm">Next update in <span id="countdown" class="text-blue-400 font-mono font-semibold">30</span>s</span>
             </div>
         </div>
 
-        <div class="refresh-indicator">
-            Auto-refreshes every 30 seconds
+        <!-- Status Content -->
+        <div id="status-content" class="space-y-4">
+            <!-- Loading State -->
+            <div class="text-center py-16">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-blue-500 mb-4"></div>
+                <p class="text-slate-400">Loading squad status...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-12 text-slate-500 text-sm">
+            <p>Auto-refreshes every 30 seconds</p>
         </div>
     </div>
 
     <script>
-        // Configuration - Replace with your Supabase details
+        // Configuration
         const SUPABASE_URL = 'https://eetgrdpfxvlefcvshvjx.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_tjVMDRXJaVZ2eScQe6oR_Q_2hdK1BLS';
+        const REFRESH_INTERVAL = 30000; // 30 seconds
+
+        let countdownInterval;
+        let refreshTimeout;
+        let timeRemaining = 30;
+
+        // Agent avatars mapping
+        const agentAvatars = {
+            'Ducki': { emoji: '🦆', color: 'from-yellow-400 to-orange-400' },
+            'Pixel': { emoji: '🎨', color: 'from-purple-400 to-pink-400' },
+            'Linus': { emoji: '🐧', color: 'from-blue-400 to-cyan-400' },
+            'Tesla': { emoji: '⚡', color: 'from-green-400 to-emerald-400' },
+            'Shakespeare': { emoji: '📜', color: 'from-amber-400 to-yellow-400' },
+        };
 
         async function fetchAgentStatus() {
             try {
@@ -214,62 +116,133 @@
             const content = document.getElementById('status-content');
 
             if (agents.length === 0) {
-                content.innerHTML = '<div class="loading"><p>No agents found</p></div>';
+                content.innerHTML = `
+                    <div class="text-center py-16">
+                        <p class="text-slate-400 text-lg">No agents found</p>
+                    </div>
+                `;
                 return;
             }
 
             const html = `
-                <div class="status-grid">
-                    ${agents.map(agent => `
-                        <div class="agent-card ${agent.status}">
-                            <div class="agent-header">
-                                <div class="agent-name">${escapeHtml(agent.agent_name)}</div>
-                                <span class="status-badge ${agent.status}">${agent.status}</span>
-                            </div>
-                            ${agent.current_task ? `
-                                <div class="current-task">
-                                    📋 ${escapeHtml(agent.current_task)}
+                <div class="grid gap-4 md:grid-cols-2">
+                    ${agents.map((agent, index) => {
+                        const avatar = agentAvatars[agent.agent_name] || { emoji: '🤖', color: 'from-slate-400 to-slate-500' };
+                        const statusConfig = getStatusConfig(agent.status);
+                        
+                        return `
+                            <div class="agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-1"
+                                 style="animation-delay: ${index * 0.05}s">
+                                <!-- Agent Header -->
+                                <div class="flex items-start gap-4 mb-4">
+                                    <div class="relative flex-shrink-0">
+                                        <div class="w-14 h-14 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center text-2xl shadow-lg">
+                                            ${avatar.emoji}
+                                        </div>
+                                        ${agent.status === 'working' ? `
+                                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                        ` : agent.status === 'idle' ? `
+                                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800"></div>
+                                        ` : `
+                                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                        `}
+                                    </div>
+                                    
+                                    <div class="flex-grow min-w-0">
+                                        <h3 class="text-xl font-bold text-white mb-1">${escapeHtml(agent.agent_name)}</h3>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.badge}">
+                                            <span class="w-1.5 h-1.5 rounded-full ${statusConfig.dot}"></span>
+                                            ${statusConfig.label}
+                                        </span>
+                                    </div>
                                 </div>
-                            ` : ''}
-                            <div class="last-active">
-                                Last active: ${formatDate(agent.last_active_at)}
+
+                                <!-- Current Task -->
+                                ${agent.current_task ? `
+                                    <div class="bg-slate-900/50 rounded-lg p-3 mb-3 border border-slate-700/30">
+                                        <div class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                            </svg>
+                                            <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(agent.current_task)}</p>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <div class="bg-slate-900/30 rounded-lg p-3 mb-3 border border-slate-700/20">
+                                        <p class="text-sm text-slate-500 italic">No active task</p>
+                                    </div>
+                                `}
+
+                                <!-- Last Active -->
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span>Last active ${formatDate(agent.last_active_at)}</span>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             `;
 
             content.innerHTML = html;
         }
 
+        function getStatusConfig(status) {
+            const configs = {
+                'idle': {
+                    label: 'Idle',
+                    badge: 'bg-green-500/10 text-green-400 border border-green-500/20',
+                    dot: 'bg-green-400',
+                    shadowColor: 'green'
+                },
+                'working': {
+                    label: 'Working',
+                    badge: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                    dot: 'bg-amber-400',
+                    shadowColor: 'amber'
+                },
+                'error': {
+                    label: 'Error',
+                    badge: 'bg-red-500/10 text-red-400 border border-red-500/20',
+                    dot: 'bg-red-400',
+                    shadowColor: 'red'
+                }
+            };
+            return configs[status] || configs['idle'];
+        }
+
         function showError(message) {
             const content = document.getElementById('status-content');
             content.innerHTML = `
-                <div class="error-message">
-                    <strong>Error loading agent status</strong><br>
-                    ${escapeHtml(message)}
-                    <br><br>
-                    <small>Make sure the database tables are created and SUPABASE_URL/KEY are configured.</small>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
+                    <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-red-400 mb-2">Error Loading Status</h3>
+                    <p class="text-red-300 text-sm mb-3">${escapeHtml(message)}</p>
+                    <p class="text-red-400/70 text-xs">Make sure the database tables are created and credentials are configured.</p>
                 </div>
             `;
         }
 
         function formatDate(dateString) {
-            if (!dateString) return 'Never';
+            if (!dateString) return 'never';
 
             const date = new Date(dateString);
             const now = new Date();
             const diffMs = now - date;
             const diffMins = Math.floor(diffMs / 60000);
 
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
 
             const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
 
             const diffDays = Math.floor(diffHours / 24);
-            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            return `${diffDays}d ago`;
         }
 
         function escapeHtml(text) {
@@ -278,11 +251,56 @@
             return div.innerHTML;
         }
 
+        function startCountdown() {
+            // Clear any existing countdown
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            timeRemaining = 30;
+            updateCountdownDisplay();
+            
+            countdownInterval = setInterval(() => {
+                timeRemaining--;
+                updateCountdownDisplay();
+                
+                if (timeRemaining <= 0) {
+                    timeRemaining = 30;
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) {
+                countdownEl.textContent = timeRemaining;
+            }
+        }
+
+        function scheduleNextRefresh() {
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+            
+            refreshTimeout = setTimeout(() => {
+                fetchAgentStatus();
+                scheduleNextRefresh();
+                startCountdown();
+            }, REFRESH_INTERVAL);
+        }
+
+        function manualRefresh() {
+            // Clear scheduled refresh and reset countdown
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+            
+            // Fetch immediately
+            fetchAgentStatus();
+            
+            // Reset countdown and schedule next refresh
+            startCountdown();
+            scheduleNextRefresh();
+        }
+
         // Initial load
         fetchAgentStatus();
-
-        // Auto-refresh every 30 seconds
-        setInterval(fetchAgentStatus, 30000);
+        startCountdown();
+        scheduleNextRefresh();
     </script>
 </body>
 </html>
