@@ -85,95 +85,56 @@
         let refreshTimeout;
         let timeRemaining = 30;
 
-        // Agent avatars mapping with SVG icons
+        // Agent avatars mapping
         const agentAvatars = {
             'Ducki': {
                 svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
                     <defs>
-                        <linearGradient id="ducki-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#f97316;stop-opacity:1" />
+                        <linearGradient id="ducki-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffb700;stop-opacity:1" />
                         </linearGradient>
+                        <radialGradient id="ducki-shine" cx="30%" cy="30%">
+                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+                        </radialGradient>
                     </defs>
-                    <circle cx="50" cy="45" r="35" fill="url(#ducki-grad)"/>
-                    <ellipse cx="50" cy="30" rx="12" ry="15" fill="#fef3c7"/>
-                    <circle cx="45" cy="28" r="3" fill="#1f2937"/>
-                    <circle cx="55" cy="28" r="3" fill="#1f2937"/>
-                    <path d="M 40 38 Q 50 42 60 38" stroke="#f97316" stroke-width="2" fill="none"/>
-                    <path d="M 30 50 L 35 55 L 30 60" stroke="#fbbf24" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <path d="M 70 50 L 65 55 L 70 60" stroke="#fbbf24" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="60" rx="32" ry="28" fill="url(#ducki-body)"/>
+                    <ellipse cx="50" cy="60" rx="32" ry="28" fill="url(#ducki-shine)"/>
+                    <!-- Head -->
+                    <circle cx="50" cy="35" r="20" fill="url(#ducki-body)"/>
+                    <circle cx="50" cy="35" r="20" fill="url(#ducki-shine)"/>
+                    <!-- Eyes -->
+                    <circle cx="43" cy="32" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="57" cy="32" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="44" cy="31" r="1.5" fill="#ffffff"/>
+                    <circle cx="58" cy="31" r="1.5" fill="#ffffff"/>
+                    <!-- Beak -->
+                    <ellipse cx="50" cy="40" rx="6" ry="4" fill="#ff8c00"/>
+                    <path d="M 44 40 Q 50 42 56 40" stroke="#d67000" stroke-width="0.8" fill="none"/>
+                    <!-- Wing -->
+                    <ellipse cx="70" cy="58" rx="12" ry="16" fill="#ffb700" transform="rotate(-20 70 58)"/>
+                    <ellipse cx="30" cy="58" rx="12" ry="16" fill="#ffb700" transform="rotate(20 30 58)"/>
+                    <!-- Highlights on body -->
+                    <ellipse cx="38" cy="50" rx="8" ry="6" fill="#ffffff" opacity="0.3"/>
                 </svg>`,
                 color: 'from-yellow-400 to-orange-400'
             },
             'Pixel': {
-                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
-                    <defs>
-                        <linearGradient id="pixel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <rect x="20" y="25" width="60" height="50" rx="5" fill="url(#pixel-grad)"/>
-                    <circle cx="35" cy="45" r="8" fill="#fbbf24"/>
-                    <circle cx="50" cy="55" r="8" fill="#3b82f6"/>
-                    <circle cx="65" cy="40" r="8" fill="#f43f5e"/>
-                    <path d="M 30 75 Q 50 85 70 75" stroke="#a855f7" stroke-width="3" fill="none" stroke-linecap="round"/>
-                    <rect x="25" y="30" width="8" height="8" fill="#fef3c7" opacity="0.5"/>
-                </svg>`,
+                emoji: '🎨',
                 color: 'from-purple-400 to-pink-400'
             },
             'Linus': {
-                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
-                    <defs>
-                        <linearGradient id="linus-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <ellipse cx="50" cy="55" rx="28" ry="35" fill="url(#linus-grad)"/>
-                    <ellipse cx="50" cy="35" rx="20" ry="22" fill="#1e293b"/>
-                    <circle cx="42" cy="35" r="4" fill="#f0f9ff"/>
-                    <circle cx="58" cy="35" r="4" fill="#f0f9ff"/>
-                    <ellipse cx="50" cy="45" rx="8" ry="5" fill="#fbbf24"/>
-                    <rect x="35" y="65" width="8" height="15" rx="3" fill="#fbbf24"/>
-                    <rect x="57" y="65" width="8" height="15" rx="3" fill="#fbbf24"/>
-                    <path d="M 25 50 L 20 55 L 25 60" stroke="#3b82f6" stroke-width="2" fill="none"/>
-                    <path d="M 75 50 L 80 55 L 75 60" stroke="#3b82f6" stroke-width="2" fill="none"/>
-                </svg>`,
+                emoji: '🐧',
                 color: 'from-blue-400 to-cyan-400'
             },
             'Tesla': {
-                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
-                    <defs>
-                        <linearGradient id="tesla-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="50" cy="50" r="35" fill="url(#tesla-grad)"/>
-                    <path d="M 50 20 L 45 45 L 55 45 L 35 80 L 45 50 L 35 50 Z" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
-                    <circle cx="65" cy="35" r="12" fill="#1e293b" opacity="0.3"/>
-                    <circle cx="65" cy="35" r="8" fill="none" stroke="#fef3c7" stroke-width="2"/>
-                    <path d="M 60 30 L 70 40" stroke="#fef3c7" stroke-width="2"/>
-                </svg>`,
+                emoji: '⚡',
                 color: 'from-green-400 to-emerald-400'
             },
             'Shakespeare': {
-                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
-                    <defs>
-                        <linearGradient id="shakespeare-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#eab308;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <rect x="25" y="30" width="50" height="50" rx="3" fill="url(#shakespeare-grad)"/>
-                    <path d="M 30 35 L 70 35 L 70 75 L 30 75" stroke="#78350f" stroke-width="1" fill="none"/>
-                    <line x1="35" y1="45" x2="65" y2="45" stroke="#78350f" stroke-width="1.5"/>
-                    <line x1="35" y1="52" x2="65" y2="52" stroke="#78350f" stroke-width="1.5"/>
-                    <line x1="35" y1="59" x2="55" y2="59" stroke="#78350f" stroke-width="1.5"/>
-                    <path d="M 55 20 Q 58 25 60 30" stroke="#78350f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                    <circle cx="62" cy="28" r="2" fill="#78350f"/>
-                </svg>`,
+                emoji: '📜',
                 color: 'from-amber-400 to-yellow-400'
             },
         };
@@ -216,7 +177,7 @@
                 <div class="grid gap-4 grid-cols-2 lg:grid-cols-2">
                     ${agents.map((agent, index) => {
                         const avatar = agentAvatars[agent.agent_name] || {
-                            svg: `<svg viewBox="0 0 100 100" class="w-full h-full"><circle cx="50" cy="50" r="35" fill="#64748b"/><text x="50" y="60" font-size="40" text-anchor="middle" fill="white">?</text></svg>`,
+                            emoji: '❓',
                             color: 'from-slate-400 to-slate-500'
                         };
                         const statusConfig = getStatusConfig(agent.status);
@@ -227,8 +188,8 @@
                                 <!-- Agent Header -->
                                 <div class="flex items-start gap-3 lg:gap-4 mb-3 lg:mb-4">
                                     <div class="relative flex-shrink-0">
-                                        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg p-2">
-                                            ${avatar.svg}
+                                        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg ${avatar.svg ? 'p-2' : 'text-2xl lg:text-3xl'}">
+                                            ${avatar.svg || avatar.emoji}
                                         </div>
                                         ${agent.status === 'working' ? `
                                             <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-slate-800 pulse-dot"></div>
