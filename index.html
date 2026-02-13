@@ -45,7 +45,7 @@
         </div>
 
         <!-- Refresh Controls -->
-        <div class="flex items-center justify-center gap-3 mb-8">
+        <div class="flex items-center justify-center mb-8">
             <button 
                 id="refreshBtn"
                 onclick="manualRefresh()"
@@ -53,11 +53,8 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                Refresh
+                <span>Refresh <span id="countdown" class="text-blue-200">(30)</span></span>
             </button>
-            <div class="bg-slate-800/50 backdrop-blur-sm px-4 py-3 rounded-lg border border-slate-700/50">
-                <span class="text-slate-400 text-sm">Next update in <span id="countdown" class="text-blue-400 font-mono font-semibold">30</span>s</span>
-            </div>
         </div>
 
         <!-- Status Content -->
@@ -67,11 +64,6 @@
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-blue-500 mb-4"></div>
                 <p class="text-slate-400">Loading squad status...</p>
             </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="text-center mt-12 text-slate-500 text-sm">
-            <p>Auto-refreshes every 30 seconds</p>
         </div>
     </div>
 
@@ -324,7 +316,7 @@
         function updateCountdownDisplay() {
             const countdownEl = document.getElementById('countdown');
             if (countdownEl) {
-                countdownEl.textContent = timeRemaining;
+                countdownEl.textContent = `(${timeRemaining})`;
             }
         }
 
