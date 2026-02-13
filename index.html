@@ -58,7 +58,6 @@
         .leader-card {
             position: relative;
             width: 100%;
-            max-width: 400px;
             z-index: 10;
         }
 
@@ -308,53 +307,55 @@
             const statusConfig = getStatusConfig(agent.status);
             
             return `
-                <div class="leader-card agent-card bg-gradient-to-br from-slate-800/70 to-slate-800/50 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border-2 ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-2xl hover:shadow-${statusConfig.shadowColor}/20 hover:-translate-y-1 ${agent.status === 'working' ? 'shadow-xl shadow-' + statusConfig.shadowColor + '-500/30 breathing-border' : agent.status === 'error' ? 'shadow-xl shadow-' + statusConfig.shadowColor + '-500/30' : ''}"
+                <div class="leader-card agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-0.5 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
                      style="animation-delay: ${index * 0.05}s">
-                    <!-- Agent Header -->
-                    <div class="flex flex-col items-center text-center mb-4 lg:mb-6">
-                        <div class="relative mb-4">
-                            <div class="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-2xl ${avatar.svg ? 'p-3' : 'text-5xl lg:text-6xl'}">
+                    <!-- Horizontal Layout -->
+                    <div class="flex items-center gap-4">
+                        <!-- Avatar -->
+                        <div class="relative flex-shrink-0">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg ${avatar.svg ? 'p-2' : 'text-3xl'}">
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full border-3 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 rounded-full border-3 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
-                        <h3 class="text-2xl lg:text-3xl font-bold text-white mb-1">${escapeHtml(agent.agent_name)}</h3>
-                        <p class="text-sm lg:text-base text-slate-300 mb-3">${agentRoles[agent.agent_name] || ''}</p>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${statusConfig.badge}">
-                            <span class="w-2 h-2 rounded-full ${statusConfig.dot}"></span>
-                            ${statusConfig.label}
-                        </span>
-                    </div>
+                        <!-- Agent Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="text-xl font-bold text-white">${escapeHtml(agent.agent_name)}</h3>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.badge}">
+                                    <span class="w-1.5 h-1.5 rounded-full ${statusConfig.dot}"></span>
+                                    ${statusConfig.label}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-400">${agentRoles[agent.agent_name] || ''}</p>
+                        </div>
 
-                    <!-- Current Task -->
-                    ${agent.current_task ? `
-                        <div class="bg-slate-900/60 rounded-xl p-4 mb-4 border border-slate-700/40">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Current Task -->
+                        <div class="hidden md:flex flex-1 min-w-0 items-center gap-2 bg-slate-900/50 rounded-lg px-4 py-2.5 border border-slate-700/30">
+                            ${agent.current_task ? `
+                                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                 </svg>
-                                <p class="text-sm text-slate-200 leading-relaxed">${escapeHtml(agent.current_task)}</p>
-                            </div>
+                                <p class="text-sm text-slate-300 truncate">${escapeHtml(agent.current_task)}</p>
+                            ` : `
+                                <p class="text-sm text-slate-500 italic">No active task</p>
+                            `}
                         </div>
-                    ` : `
-                        <div class="bg-slate-900/40 rounded-xl p-4 mb-4 border border-slate-700/30">
-                            <p class="text-sm text-slate-500 italic text-center">No active task</p>
-                        </div>
-                    `}
 
-                    <!-- Last Active -->
-                    <div class="flex items-center justify-center gap-2 text-sm text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>${formatDate(agent.last_active_at)}</span>
+                        <!-- Last Active -->
+                        <div class="hidden lg:flex items-center gap-2 text-sm text-slate-500 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>${formatDate(agent.last_active_at)}</span>
+                        </div>
                     </div>
                 </div>
             `;
