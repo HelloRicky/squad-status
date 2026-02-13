@@ -135,10 +135,69 @@
         .team-member {
             position: relative;
         }
+
+        /* Timeline Panel Styles */
+        .timeline-container {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 100%;
+            max-width: 400px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .timeline-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
+            backdrop-filter: blur(12px);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        .timeline-panel.open {
+            transform: translateX(0);
+        }
+
+        .main-content {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.shifted {
+            transform: translateX(-200px);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content.shifted {
+                transform: translateX(-100px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container {
+                max-width: 100%;
+            }
+            .main-content.shifted {
+                transform: translateX(0);
+                filter: brightness(0.7);
+            }
+        }
+
+        .timeline-item {
+            animation: slide-up 0.3s ease-out;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
-    <div class="container mx-auto px-4 py-6 max-w-5xl">
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
+    <div id="mainContent" class="main-content container mx-auto px-4 py-6 max-w-5xl">
         <!-- Header - Compact Mobile-Friendly Layout -->
         <div class="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 mb-6">
             <div class="flex items-start justify-between gap-4">
@@ -150,17 +209,28 @@
                     <p class="text-slate-400 text-xs md:text-sm">Real-time agent activity dashboard</p>
                 </div>
 
-                <!-- Right: Refresh Button -->
-                <button 
-                    id="refreshBtn"
-                    onclick="manualRefresh()"
-                    class="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-4 py-2.5 md:px-5 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
-                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                    <span class="hidden sm:inline">Refresh</span>
-                    <span id="countdown" class="text-blue-200 text-sm">(30)</span>
-                </button>
+                <!-- Right: Action Buttons -->
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <button 
+                        id="timelineBtn"
+                        onclick="toggleTimeline()"
+                        class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Timeline</span>
+                    </button>
+                    <button 
+                        id="refreshBtn"
+                        onclick="manualRefresh()"
+                        class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Refresh</span>
+                        <span id="countdown" class="text-blue-200 text-sm">(30)</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -174,6 +244,39 @@
         </div>
     </div>
 
+    <!-- Timeline Panel -->
+    <div class="timeline-container">
+        <div id="timelinePanel" class="timeline-panel">
+            <div class="flex flex-col h-full">
+                <!-- Timeline Header -->
+                <div class="flex-shrink-0 p-6 border-b border-slate-700/50">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                            Activity Timeline
+                        </h2>
+                        <button 
+                            onclick="toggleTimeline()"
+                            class="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700/50 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-sm text-slate-400">Real-time agent activity feed</p>
+                </div>
+
+                <!-- Timeline Content -->
+                <div id="timelineContent" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <!-- Loading State -->
+                    <div class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-slate-700 border-t-indigo-500 mb-3"></div>
+                        <p class="text-slate-400 text-sm">Loading timeline...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const SUPABASE_URL = 'https://your-project.supabase.co';
@@ -183,6 +286,12 @@
         let countdownInterval;
         let refreshTimeout;
         let timeRemaining = 30;
+
+        // Timeline state
+        let isTimelineOpen = false;
+        let timelineOffset = 0;
+        let isLoadingMore = false;
+        let hasMoreActivities = true;
 
         // Agent avatars mapping
         const agentAvatars = {
@@ -554,6 +663,166 @@
             // Reset countdown and schedule next refresh
             startCountdown();
             scheduleNextRefresh();
+        }
+
+        // Timeline Functions
+        function toggleTimeline() {
+            isTimelineOpen = !isTimelineOpen;
+            const panel = document.getElementById('timelinePanel');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (isTimelineOpen) {
+                panel.classList.add('open');
+                mainContent.classList.add('shifted');
+                // Load timeline data
+                timelineOffset = 0;
+                hasMoreActivities = true;
+                fetchActivities(true);
+            } else {
+                panel.classList.remove('open');
+                mainContent.classList.remove('shifted');
+            }
+        }
+
+        async function fetchActivities(reset = false) {
+            if (isLoadingMore && !reset) return;
+            if (!hasMoreActivities && !reset) return;
+
+            isLoadingMore = true;
+
+            if (reset) {
+                timelineOffset = 0;
+                hasMoreActivities = true;
+            }
+
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/activities?order=created_at.desc&limit=10&offset=${timelineOffset}`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Cache-Control': 'no-cache'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const activities = await response.json();
+                
+                if (activities.length < 10) {
+                    hasMoreActivities = false;
+                }
+
+                renderTimeline(activities, reset);
+                timelineOffset += activities.length;
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+                showTimelineError(error.message);
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+
+        function renderTimeline(activities, reset = false) {
+            const content = document.getElementById('timelineContent');
+
+            if (activities.length === 0 && reset) {
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        <p class="text-slate-400">No activities yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = activities.map((activity, index) => renderTimelineItem(activity, index)).join('');
+
+            if (reset) {
+                content.innerHTML = html;
+                if (hasMoreActivities) {
+                    content.innerHTML += '<div id="timelineLoader" class="text-center py-4"></div>';
+                }
+            } else {
+                const loader = document.getElementById('timelineLoader');
+                if (loader) {
+                    loader.remove();
+                }
+                content.insertAdjacentHTML('beforeend', html);
+                if (hasMoreActivities) {
+                    content.insertAdjacentHTML('beforeend', '<div id="timelineLoader" class="text-center py-4"></div>');
+                }
+            }
+
+            // Setup infinite scroll
+            if (reset) {
+                setupInfiniteScroll();
+            }
+        }
+
+        function renderTimelineItem(activity, index) {
+            const avatar = agentAvatars[activity.agent_name] || {
+                emoji: '❓',
+                color: 'from-slate-400 to-slate-500'
+            };
+
+            const relativeTime = formatDate(activity.created_at);
+
+            return `
+                <div class="timeline-item flex gap-3 pb-4 border-b border-slate-700/30 last:border-0" 
+                     style="animation-delay: ${index * 0.05}s">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg ${avatar.svg ? 'p-1.5' : 'text-lg'}">
+                            ${avatar.svg || avatar.emoji}
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2 mb-1">
+                            <span class="font-semibold text-white text-sm">${escapeHtml(activity.agent_name)}</span>
+                            <span class="text-xs text-slate-500 flex-shrink-0">${relativeTime}</span>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(activity.description || 'Activity')}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupInfiniteScroll() {
+            const content = document.getElementById('timelineContent');
+            
+            content.removeEventListener('scroll', handleTimelineScroll);
+            content.addEventListener('scroll', handleTimelineScroll);
+        }
+
+        function handleTimelineScroll(e) {
+            const content = e.target;
+            const scrollPercentage = (content.scrollTop + content.clientHeight) / content.scrollHeight;
+
+            if (scrollPercentage > 0.8 && !isLoadingMore && hasMoreActivities) {
+                fetchActivities(false);
+            }
+        }
+
+        function showTimelineError(message) {
+            const content = document.getElementById('timelineContent');
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <h3 class="text-red-400 font-semibold mb-2">Error Loading Timeline</h3>
+                    <p class="text-red-300 text-sm">${escapeHtml(message)}</p>
+                </div>
+            `;
         }
 
         // Initial load
