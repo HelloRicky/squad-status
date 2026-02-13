@@ -25,12 +25,25 @@
             }
         }
         
+        @keyframes breathe {
+            0%, 100% { 
+                box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.4);
+            }
+        }
+        
         .agent-card {
             animation: slide-up 0.3s ease-out;
         }
         
         .pulse-dot {
             animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .breathing-border {
+            animation: breathe 2s ease-in-out infinite;
         }
 
         /* Org Chart Hierarchy Styles */
@@ -176,7 +189,7 @@
 
         // Agent avatars mapping
         const agentAvatars = {
-            'Ducki': {
+            'Ducki (Main)': {
                 svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
                     <defs>
                         <linearGradient id="ducki-body" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -230,7 +243,7 @@
 
         // Agent roles mapping
         const agentRoles = {
-            'Ducki': 'PM / Coordinator',
+            'Ducki (Main)': 'PM / Coordinator',
             'Pixel': 'Frontend Engineer',
             'Linus': 'Backend & DevOps',
             'Tesla': 'QA & Research',
@@ -272,8 +285,8 @@
             }
 
             // Separate Ducki from team members
-            const ducki = agents.find(a => a.agent_name === 'Ducki');
-            const team = agents.filter(a => a.agent_name !== 'Ducki');
+            const ducki = agents.find(a => a.agent_name.includes('Ducki'));
+            const team = agents.filter(a => !a.agent_name.includes('Ducki'));
 
             const html = `
                 <div class="org-chart-container">
@@ -301,7 +314,7 @@
             const statusConfig = getStatusConfig(agent.status);
             
             return `
-                <div class="leader-card agent-card bg-gradient-to-br from-slate-800/70 to-slate-800/50 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border-2 ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-2xl hover:shadow-${statusConfig.shadowColor}/20 hover:-translate-y-1 ${agent.status === 'working' || agent.status === 'error' ? 'shadow-xl shadow-' + statusConfig.shadowColor + '-500/30' : ''}"
+                <div class="leader-card agent-card bg-gradient-to-br from-slate-800/70 to-slate-800/50 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border-2 ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-2xl hover:shadow-${statusConfig.shadowColor}/20 hover:-translate-y-1 ${agent.status === 'working' ? 'shadow-xl shadow-' + statusConfig.shadowColor + '-500/30 breathing-border' : agent.status === 'error' ? 'shadow-xl shadow-' + statusConfig.shadowColor + '-500/30' : ''}"
                      style="animation-delay: ${index * 0.05}s">
                     <!-- Agent Header -->
                     <div class="flex flex-col items-center text-center mb-4 lg:mb-6">
@@ -310,11 +323,11 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-amber-400 rounded-full border-3 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-3 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full border-3 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-red-400 rounded-full border-3 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 rounded-full border-3 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
@@ -361,7 +374,7 @@
             const statusConfig = getStatusConfig(agent.status);
             
             return `
-                <div class="team-member agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 lg:p-5 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-1 ${agent.status === 'working' || agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
+                <div class="team-member agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 lg:p-5 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-1 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
                      style="animation-delay: ${index * 0.05}s">
                     <!-- Agent Header -->
                     <div class="flex flex-col items-center text-center mb-3">
@@ -370,11 +383,11 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
@@ -418,24 +431,24 @@
             const configs = {
                 'idle': {
                     label: 'Idle',
-                    badge: 'bg-green-500/10 text-green-400 border border-green-500/20',
-                    dot: 'bg-green-400',
-                    shadowColor: 'green',
-                    borderClass: 'border-white/10',
-                    hoverBorderClass: 'hover:border-white/20'
+                    badge: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+                    dot: 'bg-yellow-500',
+                    shadowColor: 'yellow',
+                    borderClass: 'border-yellow-500',
+                    hoverBorderClass: 'hover:border-yellow-400'
                 },
                 'working': {
                     label: 'Working',
-                    badge: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-                    dot: 'bg-amber-400',
-                    shadowColor: 'amber',
+                    badge: 'bg-green-500/10 text-green-400 border border-green-500/20',
+                    dot: 'bg-green-500',
+                    shadowColor: 'green',
                     borderClass: 'border-green-500',
                     hoverBorderClass: 'hover:border-green-400'
                 },
                 'error': {
                     label: 'Error',
                     badge: 'bg-red-500/10 text-red-400 border border-red-500/20',
-                    dot: 'bg-red-400',
+                    dot: 'bg-red-500',
                     shadowColor: 'red',
                     borderClass: 'border-red-500',
                     hoverBorderClass: 'hover:border-red-400'
