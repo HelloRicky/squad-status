@@ -1023,7 +1023,21 @@
     </div>
 
     <script>
+        // ========================================
         // Configuration
+        // ========================================
+        // 
+        // ⚠️ SECURITY NOTE: These credentials are INTENTIONALLY public.
+        // 
+        // The Supabase anon key is designed to be embedded in client-side code.
+        // Security is enforced via Row Level Security (RLS) policies on the database:
+        // 
+        //   - Public users: READ-ONLY access (view dashboard)
+        //   - Agents: WRITE access via service key (kept secret on servers)
+        // 
+        // See SECURITY.md for details and verification steps.
+        // Migration: /supabase/migrations/20260214_fix_rls_policies.sql
+        // 
         const SUPABASE_URL = 'https://your-project.supabase.co';
         const SUPABASE_ANON_KEY = 'your-supabase-anon-key-here';
         const REFRESH_INTERVAL = 30000; // 30 seconds

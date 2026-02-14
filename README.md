@@ -15,64 +15,35 @@ A simple, beautiful status page to monitor your AI agent squad in real-time.
 
 ### 1. Create Supabase Tables
 
-Run this SQL in your Supabase SQL Editor:
+**IMPORTANT:** Run the complete setup SQL from the repository root:
 
-```sql
--- Current status (quick lookup)
-CREATE TABLE IF NOT EXISTS agent_status (
-  agent_id TEXT PRIMARY KEY,
-  agent_name TEXT,
-  status TEXT DEFAULT 'idle',
-  current_task TEXT,
-  last_active_at TIMESTAMPTZ DEFAULT now()
-);
+```bash
+# Initial setup (creates tables)
+psql -f setup.sql
 
--- History (SCD Type 2)
-CREATE TABLE IF NOT EXISTS agent_status_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  agent_id TEXT,
-  status TEXT,
-  task TEXT,
-  started_at TIMESTAMPTZ DEFAULT now(),
-  ended_at TIMESTAMPTZ
-);
-
--- Enable RLS
-ALTER TABLE agent_status ENABLE ROW LEVEL SECURITY;
-ALTER TABLE agent_status_history ENABLE ROW LEVEL SECURITY;
-
--- Allow public read access
-CREATE POLICY IF NOT EXISTS "Allow public read access" ON agent_status
-  FOR SELECT USING (true);
-
-CREATE POLICY IF NOT EXISTS "Allow public read access" ON agent_status_history
-  FOR SELECT USING (true);
-
--- Allow updates via service key
-CREATE POLICY IF NOT EXISTS "Allow updates" ON agent_status
-  FOR UPDATE USING (true) WITH CHECK (true);
-
-CREATE POLICY IF NOT EXISTS "Allow inserts" ON agent_status
-  FOR INSERT WITH CHECK (true);
-
--- Seed agents
-INSERT INTO agent_status (agent_id, agent_name, status) VALUES
-  ('ducki', 'Ducki (Main)', 'idle'),
-  ('pixel', 'Pixel', 'idle'),
-  ('linus', 'Linus', 'idle'),
-  ('tesla', 'Tesla', 'idle'),
-  ('shakespeare', 'Shakespeare', 'idle')
-ON CONFLICT (agent_id) DO NOTHING;
+# Security policies (REQUIRED - prevents unauthorized writes)
+psql -f supabase/migrations/20260214_fix_rls_policies.sql
 ```
 
-### 2. Configure the Status Page
+Or manually via Supabase SQL Editor - see `setup.sql` and `supabase/migrations/20260214_fix_rls_policies.sql`.
 
-Edit `index.html` and replace these values:
+**🔒 Security:** See [SECURITY.md](SECURITY.md) for details on the RLS security model.
 
-```javascript
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-```
+### 2. Deploy to Cloudflare Pages
+
+**No configuration needed!** The Supabase credentials in `index.html` are already set up and safe to commit (they're public anon keys protected by RLS).
+
+1. Push this repo to GitHub (dev branch)
+2. Go to [Cloudflare Pages](https://pages.cloudflare.com)
+3. Click "Create a project"
+4. Connect your GitHub repo
+5. Use these settings:
+   - **Branch**: `dev`
+   - **Build command**: (leave empty)
+   - **Build output directory**: `/`
+   - **Root directory**: `/`
+
+That's it! Your status page will be live at `https://your-project.pages.dev`
 
 ### 3. Deploy to Cloudflare Pages
 
@@ -148,7 +119,25 @@ The hooks need these environment variables:
 - Supabase for real-time data
 - Cloudflare Pages for hosting
 
+## Security
+
+**Q: Why are Supabase credentials hardcoded in the HTML?**
+
+A: The anon key is designed to be public. Security is enforced via Row Level Security (RLS) policies:
+- ✅ Public users can **read** the dashboard
+- ❌ Only agents with service keys can **write** status updates
+
+See [SECURITY.md](SECURITY.md) for complete details and verification steps.
+
+**Q: What should NOT be committed?**
+
+Never commit:
+- `MC_SUPABASE_SERVICE_KEY` (full database access)
+- `SUPABASE_DB_PASSWORD` (postgres access)
+- Other service role credentials
+
+These remain in environment variables on agent servers only.
+
 ## License
 
 MIT
-# CI/CD Test
