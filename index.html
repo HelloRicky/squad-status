@@ -1022,12 +1022,15 @@
         </div>
     </div>
 
+    <!-- Load configuration from external file (generated at build time) -->
+    <script src="config.js"></script>
+
     <script>
         // ========================================
         // Configuration
         // ========================================
         // 
-        // ⚠️ SECURITY NOTE: These credentials are INTENTIONALLY public.
+        // ⚠️ SECURITY NOTE: Credentials are loaded from config.js (generated at build time).
         // 
         // The Supabase anon key is designed to be embedded in client-side code.
         // Security is enforced via Row Level Security (RLS) policies on the database:
@@ -1038,8 +1041,7 @@
         // See SECURITY.md for details and verification steps.
         // Migration: /supabase/migrations/20260214_fix_rls_policies.sql
         // 
-        const SUPABASE_URL = 'https://your-project.supabase.co';
-        const SUPABASE_ANON_KEY = 'your-supabase-anon-key-here';
+        // Config variables (SUPABASE_URL, SUPABASE_ANON_KEY) are loaded from config.js
         const REFRESH_INTERVAL = 30000; // 30 seconds
 
         let countdownInterval;

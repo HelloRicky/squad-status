@@ -29,21 +29,21 @@ Or manually via Supabase SQL Editor - see `setup.sql` and `supabase/migrations/2
 
 **🔒 Security:** See [SECURITY.md](SECURITY.md) for details on the RLS security model.
 
-### 2. Deploy to Cloudflare Pages
+### 2. Configure Environment Variables
 
-**No configuration needed!** The Supabase credentials in `index.html` are already set up and safe to commit (they're public anon keys protected by RLS).
+Supabase credentials are **no longer hardcoded**. They are injected at build time via environment variables.
 
-1. Push this repo to GitHub (dev branch)
-2. Go to [Cloudflare Pages](https://pages.cloudflare.com)
-3. Click "Create a project"
-4. Connect your GitHub repo
-5. Use these settings:
-   - **Branch**: `dev`
-   - **Build command**: (leave empty)
-   - **Build output directory**: `/`
-   - **Root directory**: `/`
+**See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for detailed instructions.**
 
-That's it! Your status page will be live at `https://your-project.pages.dev`
+Quick setup:
+
+1. **In Cloudflare Pages Dashboard**:
+   - Go to Settings → Environment variables
+   - Add `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+   
+2. **In GitHub Repository** (for Actions workflow):
+   - Go to Settings → Secrets and variables → Actions
+   - Add `SUPABASE_URL` and `SUPABASE_ANON_KEY`
 
 ### 3. Deploy to Cloudflare Pages
 
@@ -52,9 +52,11 @@ That's it! Your status page will be live at `https://your-project.pages.dev`
 3. Click "Create a project"
 4. Connect your GitHub repo
 5. Use these settings:
-   - Build command: (leave empty)
-   - Build output directory: `/`
-   - Root directory: `/`
+   - **Build command**: `./build.sh`
+   - **Build output directory**: `.`
+   - **Root directory**: (leave empty)
+
+The build script will generate `config.js` from environment variables.
 
 That's it! Your status page will be live at `https://your-project.pages.dev`
 
@@ -121,9 +123,13 @@ The hooks need these environment variables:
 
 ## Security
 
-**Q: Why are Supabase credentials hardcoded in the HTML?**
+**Q: Are credentials hardcoded?**
 
-A: The anon key is designed to be public. Security is enforced via Row Level Security (RLS) policies:
+A: **No longer!** As of Feb 14, 2026, credentials are injected at build time via environment variables. The generated `config.js` is excluded from git.
+
+**Q: Is it safe to expose the anon key?**
+
+A: Yes. The Supabase anon key is designed to be public. Security is enforced via Row Level Security (RLS) policies:
 - ✅ Public users can **read** the dashboard
 - ❌ Only agents with service keys can **write** status updates
 
@@ -132,11 +138,12 @@ See [SECURITY.md](SECURITY.md) for complete details and verification steps.
 **Q: What should NOT be committed?**
 
 Never commit:
+- `config.js` (auto-generated, contains credentials)
 - `MC_SUPABASE_SERVICE_KEY` (full database access)
 - `SUPABASE_DB_PASSWORD` (postgres access)
 - Other service role credentials
 
-These remain in environment variables on agent servers only.
+These remain in environment variables on agent servers and CI/CD only.
 
 ## License
 
