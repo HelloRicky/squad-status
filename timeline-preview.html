@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Design Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['EB Garamond', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Vertical Timeline Line */
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, 
+                transparent 0%,
+                rgba(139, 92, 246, 0.3) 10%,
+                rgba(139, 92, 246, 0.6) 50%,
+                rgba(139, 92, 246, 0.3) 90%,
+                transparent 100%
+            );
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .day-node {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
+            animation: fadeInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .day-badge {
+            position: relative;
+            z-index: 10;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 20px rgba(139, 92, 246, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .day-text {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #a78bfa, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .timeline-item-container {
+            position: relative;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .timeline-item-container.left {
+            justify-content: flex-start;
+            padding-right: 50%;
+            padding-left: 1rem;
+        }
+
+        .timeline-item-container.right {
+            justify-content: flex-end;
+            padding-left: 50%;
+            padding-right: 1rem;
+        }
+
+        .timeline-card {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.3),
+                0 0 40px rgba(139, 92, 246, 0.1);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .timeline-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 8px 30px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .timeline-card.live {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(30, 41, 59, 0.8));
+            border-color: rgba(239, 68, 68, 0.4);
+            animation: pulseLive 2s ease-in-out infinite, slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: 3px solid rgba(15, 23, 42, 0.95);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 0 4px rgba(139, 92, 246, 0.2),
+                0 0 20px rgba(139, 92, 246, 0.6);
+            z-index: 5;
+        }
+
+        .timeline-item-container.live .timeline-dot {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 
+                0 0 0 4px rgba(239, 68, 68, 0.2),
+                0 0 30px rgba(239, 68, 68, 0.8);
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+
+        .timeline-connector {
+            position: absolute;
+            top: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.4), transparent);
+            z-index: 1;
+        }
+
+        .timeline-item-container.left .timeline-connector {
+            left: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item-container.right .timeline-connector {
+            right: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4));
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideInTimeline {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseLive {
+            0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 60px rgba(239, 68, 68, 0.6); }
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold font-serif mb-4 bg-gradient-to-r from-violet-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+                Timeline Design Preview
+            </h1>
+            <p class="text-slate-400 font-sans italic">Editorial-inspired vertical timeline with elegant typography</p>
+        </div>
+
+        <!-- Timeline Container -->
+        <div class="relative py-8 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+            <div class="timeline-line"></div>
+            
+            <!-- Day Node 1 -->
+            <div class="day-node">
+                <div class="day-badge">
+                    <div class="day-text">📅 Today</div>
+                </div>
+            </div>
+
+            <!-- LIVE Activity -->
+            <div class="timeline-item-container left live" style="animation-delay: 0s">
+                <div class="timeline-connector"></div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-card live">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg text-lg ring-2 ring-slate-700/50">
+                                🎨
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-white text-sm font-sans">Pixel</div>
+                            <div class="text-xs text-slate-400 font-sans">2m ago</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-200 leading-relaxed mb-3 font-serif italic">
+                        "Redesigning the activity timeline with beautiful vertical layout and day nodes"
+                    </p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/40 font-sans">
+                            🔴 LIVE
+                        </span>
+                        <span class="text-xs text-slate-400 font-medium font-sans">ongoing</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed Activity -->
+            <div class="timeline-item-container right" style="animation-delay: 0.08s">
+                <div class="timeline-connector"></div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg text-lg ring-2 ring-slate-700/50">
+                                🔧
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-white text-sm font-sans">Linus</div>
+                            <div class="text-xs text-slate-400 font-sans">1h ago</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-200 leading-relaxed mb-3 font-serif italic">
+                        "Updated Supabase schema to support activity history tracking"
+                    </p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/40 font-sans">
+                            ✅ Completed
+                        </span>
+                        <span class="text-xs text-slate-400 font-medium font-sans">42m</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Node 2 -->
+            <div class="day-node">
+                <div class="day-badge">
+                    <div class="day-text">📅 Yesterday</div>
+                </div>
+            </div>
+
+            <!-- Another Activity -->
+            <div class="timeline-item-container left" style="animation-delay: 0.16s">
+                <div class="timeline-connector"></div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg text-lg ring-2 ring-slate-700/50">
+                                🦆
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-white text-sm font-sans">Ducki</div>
+                            <div class="text-xs text-slate-400 font-sans">1d ago</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-200 leading-relaxed mb-3 font-serif italic">
+                        "Coordinated team sprint planning and task assignments"
+                    </p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/40 font-sans">
+                            ✅ Completed
+                        </span>
+                        <span class="text-xs text-slate-400 font-medium font-sans">1h 23m</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Design Features -->
+        <div class="mt-12 grid md:grid-cols-2 gap-6">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold font-serif mb-3 text-purple-300">Typography</h3>
+                <p class="text-sm text-slate-300 mb-2"><span class="font-serif italic">EB Garamond</span> - Elegant serif for content</p>
+                <p class="text-sm text-slate-300"><span class="font-sans font-medium">Inter</span> - Clean sans for UI</p>
+            </div>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold font-serif mb-3 text-purple-300">Visual Effects</h3>
+                <p class="text-sm text-slate-300 mb-2">• Glowing timeline line</p>
+                <p class="text-sm text-slate-300 mb-2">• Pulsing LIVE indicators</p>
+                <p class="text-sm text-slate-300">• Smooth hover animations</p>
+            </div>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold font-serif mb-3 text-purple-300">Layout</h3>
+                <p class="text-sm text-slate-300 mb-2">• Alternating left/right cards</p>
+                <p class="text-sm text-slate-300 mb-2">• Day nodes as separators</p>
+                <p class="text-sm text-slate-300">• Center connector dots</p>
+            </div>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold font-serif mb-3 text-purple-300">Responsive</h3>
+                <p class="text-sm text-slate-300 mb-2">• Desktop: Full alternating</p>
+                <p class="text-sm text-slate-300 mb-2">• Tablet: Narrower cards</p>
+                <p class="text-sm text-slate-300">• Mobile: Centered stack</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
