@@ -61,6 +61,101 @@
             animation: breathe 2s ease-in-out infinite;
         }
 
+        /* View Mode Toggle Styles */
+        .view-mode-btn {
+            color: rgba(148, 163, 184, 0.8);
+            transition: all 0.2s ease;
+        }
+
+        .view-mode-btn:hover {
+            color: rgba(168, 139, 250, 0.9);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .view-mode-btn.active {
+            background: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+
+        /* Compact View Styles */
+        .view-compact .agent-card {
+            padding: 0.75rem !important;
+            font-size: 0.875rem !important;
+        }
+
+        .view-compact .team-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+            gap: 0.75rem !important;
+        }
+
+        .view-compact .agent-avatar {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+        }
+
+        .view-compact .leader-card {
+            max-width: 280px !important;
+        }
+
+        /* Table View Styles */
+        .view-table .team-container {
+            display: block !important;
+        }
+
+        .view-table .connector-lines {
+            display: none !important;
+        }
+
+        .view-table .team-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+
+        .view-table .agent-card {
+            border-radius: 0.5rem !important;
+            padding: 1rem !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+
+        .view-table .agent-card > * {
+            margin: 0 !important;
+        }
+
+        /* Timeline Filter Chip Styles */
+        .timeline-filter-chip {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            background: rgba(15, 23, 42, 0.5);
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .timeline-filter-chip:hover {
+            background: rgba(100, 116, 139, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .timeline-filter-chip.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.6);
+            color: #a78bfa;
+        }
+
+        /* Grouped Timeline Entry Styles */
+        .timeline-item-container.grouped {
+            opacity: 0.9;
+        }
+
+        .timeline-item-container.grouped:hover {
+            opacity: 1;
+        }
+
         /* Org Chart Hierarchy Styles */
         .org-chart-container {
             position: relative;
@@ -608,6 +703,106 @@
             background: transparent !important;
         }
 
+        /* ====================
+           PHASE 3: Typography Hierarchy
+           ==================== */
+        
+        /* Primary: Agent name (larger, bolder) */
+        .agent-card h3 {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* Secondary: Task description */
+        .agent-card .task-description,
+        .agent-card p {
+            font-size: 0.875rem; /* 14px */
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        /* Tertiary: Role, timestamp, metadata */
+        .agent-role,
+        .agent-timestamp,
+        .timeline-metadata {
+            font-size: 0.75rem; /* 12px */
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        /* ====================
+           PHASE 3: Dark Theme Contrast Improvements
+           ==================== */
+        
+        /* Improved contrast for timestamps */
+        .stale-timestamp:not(.critical) {
+            color: #cbd5e1; /* slate-300, better contrast */
+        }
+
+        .stale-timestamp.critical {
+            color: #fca5a5; /* red-300 */
+        }
+
+        /* Timeline metadata improved contrast */
+        .timeline-metadata {
+            color: #cbd5e1; /* slate-300 */
+        }
+
+        /* Secondary text improved */
+        .text-slate-500 {
+            color: #94a3b8 !important; /* Ensure 4.5:1 ratio minimum */
+        }
+
+        /* ====================
+           PHASE 4: Consistent Border Treatments
+           ==================== */
+        
+        /* Remove all dashed borders, use solid */
+        .agent-card[data-status="working"],
+        .agent-card.breathing-border {
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        .agent-card[data-status="idle"] {
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .agent-card[data-status="error"] {
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        /* Ensure no dashed borders anywhere */
+        .border-dashed {
+            border-style: solid !important;
+        }
+
+        /* ====================
+           PHASE 4: Avatar System Consistency
+           ==================== */
+        
+        /* All avatars follow same sizing and spacing */
+        .agent-avatar,
+        .timeline-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        @media (min-width: 1024px) {
+            .agent-avatar {
+                width: 4rem;
+                height: 4rem;
+            }
+        }
+
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
@@ -624,7 +819,33 @@
                 </div>
 
                 <!-- Right: Action Buttons -->
-                <div class="flex-shrink-0 flex items-center gap-2">
+                <div class="flex-shrink-0 flex items-center gap-2 flex-wrap">
+                    <!-- View Mode Toggle -->
+                    <div class="flex items-center gap-1 bg-slate-800/50 rounded-lg p-1">
+                        <button onclick="setViewMode('card')" id="viewCard" class="view-mode-btn active px-2 md:px-3 py-1.5 rounded text-xs transition-all" title="Card View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                            </svg>
+                        </button>
+                        <button onclick="setViewMode('compact')" id="viewCompact" class="view-mode-btn px-2 md:px-3 py-1.5 rounded text-xs transition-all" title="Compact View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                        <button onclick="setViewMode('table')" id="viewTable" class="view-mode-btn px-2 md:px-3 py-1.5 rounded text-xs transition-all" title="Table View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Sort Dropdown -->
+                    <select id="sortBy" onchange="setSortBy(this.value)" class="bg-slate-800/50 border border-slate-700 rounded-lg px-2 md:px-3 py-2 text-xs md:text-sm text-white h-10">
+                        <option value="status">Sort: Status</option>
+                        <option value="name">Sort: Name</option>
+                        <option value="lastActive">Sort: Last Active</option>
+                    </select>
+
                     <button 
                         id="refreshBtn"
                         onclick="manualRefresh()"
@@ -652,6 +873,28 @@
         </div>
 
         <!-- Status Content -->
+        
+        <!-- Search Bar -->
+        <div class="bg-slate-800/40 backdrop-blur-sm rounded-xl p-3 mb-4 border border-slate-700/30">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input 
+                    type="text" 
+                    id="agentSearch"
+                    placeholder="Search agents by name or role..."
+                    oninput="searchAgents(this.value)"
+                    class="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-10 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                />
+                <button 
+                    id="searchClear"
+                    onclick="clearSearch()"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white hidden transition-colors">
+                    ✕
+                </button>
+            </div>
+        </div>
         
         <!-- Summary Bar -->
         <div id="summary-bar" class="bg-slate-800/40 backdrop-blur-sm rounded-xl p-4 mb-6 border border-slate-700/30">
@@ -683,7 +926,7 @@
         <div id="timelinePanel" class="timeline-panel" role="complementary" aria-label="Activity Timeline Panel">
             <div class="flex flex-col h-full">
                 <!-- Timeline Header -->
-                <div class="flex-shrink-0 p-6 pb-8 border-b border-slate-700/30 bg-gradient-to-b from-slate-900/50 to-transparent">
+                <div class="flex-shrink-0 p-6 pb-4 border-b border-slate-700/30 bg-gradient-to-b from-slate-900/50 to-transparent">
                     <div class="flex items-start justify-between mb-3">
                         <div>
                             <h2 class="text-3xl font-bold font-serif mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -698,6 +941,27 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
+                        </button>
+                    </div>
+                    <!-- Timeline Filter Chips -->
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button onclick="filterTimeline('all')" id="timelineFilterAll" class="timeline-filter-chip active">
+                            All
+                        </button>
+                        <button onclick="filterTimeline('Ducki (Main)')" id="timelineFilterDucki" class="timeline-filter-chip" style="border-color: #FFD700;">
+                            🦆 Ducki
+                        </button>
+                        <button onclick="filterTimeline('Pixel')" id="timelineFilterPixel" class="timeline-filter-chip" style="border-color: #A855F7;">
+                            🎨 Pixel
+                        </button>
+                        <button onclick="filterTimeline('Linus')" id="timelineFilterLinus" class="timeline-filter-chip" style="border-color: #06B6D4;">
+                            🐧 Linus
+                        </button>
+                        <button onclick="filterTimeline('Tesla')" id="timelineFilterTesla" class="timeline-filter-chip" style="border-color: #10B981;">
+                            ⚡ Tesla
+                        </button>
+                        <button onclick="filterTimeline('Shakespeare')" id="timelineFilterShakespeare" class="timeline-filter-chip" style="border-color: #F59E0B;">
+                            📜 Shakespeare
                         </button>
                     </div>
                 </div>
@@ -775,6 +1039,13 @@
         let hasMoreActivities = true;
         let displayedDates = new Set(); // Track which day tags we've already shown
 
+        // Phase 2: Scalability state
+        let viewMode = localStorage.getItem('viewMode') || 'card';
+        let sortBy = localStorage.getItem('sortBy') || 'status';
+        let searchQuery = '';
+        let timelineFilter = 'all';
+        let allAgentsData = []; // Store for filtering/sorting
+
         // Agent avatars mapping
         const agentAvatars = {
             'Ducki (Main)': {
@@ -847,10 +1118,8 @@
             'Shakespeare': '#F59E0B'
         };
 
-
         // Filter state
         let currentFilter = 'all'; // 'all', 'working', 'idle', 'error'
-        let allAgentsData = [];
 
         // Staleness thresholds (in minutes)
         const STALE_WARNING_THRESHOLD = 15;
@@ -1013,6 +1282,209 @@
             }
         });
 
+        // ====================
+        // PHASE 2: Scalability Functions
+        // ====================
+
+        // View Mode Toggle
+        function setViewMode(mode) {
+            viewMode = mode;
+            localStorage.setItem('viewMode', mode);
+            
+            // Update button states
+            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('view' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+            
+            // Apply view mode class to content
+            const content = document.getElementById('status-content');
+            content.classList.remove('view-compact', 'view-table');
+            if (mode !== 'card') {
+                content.classList.add(`view-${mode}`);
+            }
+            
+            // Re-render with new view
+            renderAgents(allAgentsData);
+        }
+
+        // Search Agents
+        function searchAgents(query) {
+            searchQuery = query.toLowerCase();
+            
+            // Show/hide clear button
+            document.getElementById('searchClear').classList.toggle('hidden', !query);
+            
+            renderAgents(allAgentsData);
+        }
+
+        // Clear Search
+        function clearSearch() {
+            searchQuery = '';
+            document.getElementById('agentSearch').value = '';
+            document.getElementById('searchClear').classList.add('hidden');
+            renderAgents(allAgentsData);
+        }
+
+        // Sorting
+        function setSortBy(sort) {
+            sortBy = sort;
+            localStorage.setItem('sortBy', sort);
+            renderAgents(allAgentsData);
+        }
+
+        // Timeline Filtering
+        function filterTimeline(agentName) {
+            timelineFilter = agentName;
+            
+            // Update active state
+            document.querySelectorAll('.timeline-filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            
+            // Set active chip
+            if (agentName === 'all') {
+                document.getElementById('timelineFilterAll').classList.add('active');
+            } else {
+                const chipId = 'timelineFilter' + agentName.replace(/[^a-zA-Z]/g, '');
+                const chip = document.getElementById(chipId);
+                if (chip) chip.classList.add('active');
+            }
+            
+            // Reload timeline
+            fetchActivities(true);
+        }
+
+        // Collapse Repeated Timeline Entries
+        function collapseRepeatedEntries(activities) {
+            if (!activities || activities.length === 0) return [];
+            
+            const collapsed = [];
+            let currentGroup = null;
+            
+            activities.forEach((activity, i) => {
+                const taskMatch = currentGroup && 
+                    currentGroup.agent_name === activity.agent_name &&
+                    currentGroup.status === activity.status &&
+                    (currentGroup.task || '').substring(0, 100) === (activity.task || '').substring(0, 100);
+                
+                if (taskMatch) {
+                    // Add to current group
+                    currentGroup.entries.push(activity);
+                    currentGroup.endTime = activity.started_at;
+                } else {
+                    // Start new group
+                    if (currentGroup) collapsed.push(currentGroup);
+                    currentGroup = {
+                        ...activity,
+                        entries: [activity],
+                        startTime: activity.started_at,
+                        endTime: activity.ended_at || activity.started_at,
+                        isGroup: false
+                    };
+                }
+            });
+            
+            if (currentGroup) collapsed.push(currentGroup);
+            
+            // Mark groups with >1 entry
+            return collapsed.map(group => ({
+                ...group,
+                isGroup: group.entries.length > 1
+            }));
+        }
+
+        // Expand grouped timeline entries
+        function expandGroup(index) {
+            alert('Expand functionality: Show all ' + index + ' entries in detail view');
+            // TODO: Implement expand modal if needed
+        }
+
+        // ====================
+        // PHASE 3: State Detection Functions
+        // ====================
+
+        // Get agent connection state
+        function getAgentConnectionState(lastActiveAt) {
+            if (!lastActiveAt) return 'disconnected';
+            const now = new Date();
+            const lastActive = new Date(lastActiveAt);
+            const hoursAgo = (now - lastActive) / (1000 * 60 * 60);
+            
+            if (hoursAgo > 24) return 'disconnected';
+            return 'connected';
+        }
+
+        // Check if task is stalled
+        function isTaskStalled(status, lastActiveAt) {
+            if (status !== 'working') return false;
+            if (!lastActiveAt) return false;
+            
+            const now = new Date();
+            const lastActive = new Date(lastActiveAt);
+            const minutesRunning = (now - lastActive) / (1000 * 60);
+            return minutesRunning > 30; // Stalled if >30 min
+        }
+
+        // Format duration with clarity
+        function formatDurationClear(startTime, endTime, status) {
+            const start = new Date(startTime);
+            const end = endTime ? new Date(endTime) : new Date();
+            const duration = end - start;
+            const minutes = Math.floor(duration / 60000);
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            
+            let durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+            
+            // Add clarity prefix
+            if (endTime && status === 'completed') {
+                return `✓ Completed in ${durationStr}`;
+            } else if (endTime && status === 'failed') {
+                return `✗ Failed after ${durationStr}`;
+            } else if (!endTime) {
+                return `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>In progress (${durationStr})</span>`;
+            }
+            return durationStr;
+        }
+
+        // ====================
+        // PHASE 5: Browser Notifications
+        // ====================
+
+        // Request notification permission on load
+        if ('Notification' in window && Notification.permission === 'default') {
+            // Request permission after user interaction
+            setTimeout(() => {
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }, 5000);
+        }
+
+        // Send error notification
+        function notifyError(agentName, error) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(`⚠ ${agentName} Error`, {
+                    body: error || 'An error occurred',
+                    icon: '/favicon.ico',
+                    tag: `agent-error-${agentName}`,
+                    requireInteraction: true
+                });
+            }
+        }
+
+        // Send stalled notification
+        function notifyStalled(agentName, task) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(`⏸ ${agentName} May Be Stalled`, {
+                    body: `Task running for >30min: ${task}`,
+                    icon: '/favicon.ico',
+                    tag: `agent-stalled-${agentName}`
+                });
+            }
+        }
+
         async function fetchAgentStatus() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/agent_status?order=agent_id.asc`, {
@@ -1047,18 +1519,57 @@
             // Filter out agents with null or missing agent_name
             let validAgents = agents.filter(a => a.agent_name != null);
             
+            // PHASE 2: Apply search filter
+            if (searchQuery) {
+                validAgents = validAgents.filter(a => 
+                    a.agent_name.toLowerCase().includes(searchQuery) ||
+                    (agentRoles[a.agent_name] || '').toLowerCase().includes(searchQuery) ||
+                    (a.current_task || '').toLowerCase().includes(searchQuery)
+                );
+            }
+            
             // Apply status filter
             if (currentFilter !== 'all') {
                 validAgents = validAgents.filter(a => a.status === currentFilter);
             }
 
-            if (validAgents.length === 0) {
+            // PHASE 3: Empty state - no agents at all
+            if (agents.length === 0) {
                 content.innerHTML = `
                     <div class="text-center py-16">
-                        <p class="text-slate-400 text-lg">No agents found</p>
+                        <svg class="w-24 h-24 mx-auto mb-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <h3 class="text-2xl font-bold mb-3">No Agents Connected</h3>
+                        <p class="text-slate-400 mb-6">Get started by connecting your first agent to the system</p>
                     </div>
                 `;
                 return;
+            }
+
+            // PHASE 3: Empty state - filtered out
+            if (validAgents.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-16">
+                        <svg class="w-20 h-20 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <p class="text-slate-400 text-lg mb-4">No agents match your filters</p>
+                        ${searchQuery ? `<button onclick="clearSearch()" class="text-purple-400 hover:text-purple-300 text-sm">Clear search</button>` : ''}
+                        ${currentFilter !== 'all' ? `<button onclick="setFilter('all')" class="text-purple-400 hover:text-purple-300 text-sm ml-4">Clear status filter</button>` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            // PHASE 2: Apply sorting
+            if (sortBy === 'name') {
+                validAgents.sort((a, b) => a.agent_name.localeCompare(b.agent_name));
+            } else if (sortBy === 'lastActive') {
+                validAgents.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
+            } else if (sortBy === 'status') {
+                const statusOrder = { error: 0, working: 1, idle: 2 };
+                validAgents.sort((a, b) => (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99));
             }
 
             // Separate Ducki from team members
@@ -1194,19 +1705,91 @@
                 emoji: '❓',
                 color: 'from-slate-400 to-slate-500'
             };
+            
+            // PHASE 3: Check for disconnected state
+            const connectionState = getAgentConnectionState(agent.last_active_at);
+            if (connectionState === 'disconnected') {
+                return `
+                    <div class="team-member agent-card bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 lg:p-5 border border-slate-700/50 opacity-50 grayscale"
+                         style="animation-delay: ${index * 0.05}s">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center mb-3 ${avatar.svg ? 'p-2' : 'text-2xl lg:text-3xl'}">
+                                ${avatar.svg || avatar.emoji}
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-400 mb-1">${escapeHtml(agent.agent_name)}</h3>
+                            <div class="flex items-center gap-2 text-slate-500 text-sm mb-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+                                </svg>
+                                Disconnected
+                            </div>
+                            <p class="text-xs text-slate-500">Last seen: ${formatDate(agent.last_active_at)}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
             const statusConfig = getStatusConfig(agent.status);
             const staleness = getStaleness(agent.last_active_at);
             const stalenessClass = staleness === 'critical' ? 'stale-critical' : staleness === 'warning' ? 'stale-warning' : '';
             const timestampClass = staleness === 'critical' ? 'stale-timestamp critical' : staleness === 'warning' ? 'stale-timestamp' : '';
             
+            // PHASE 3: Check for stalled task
+            const isStalled = isTaskStalled(agent.status, agent.last_active_at);
+            if (isStalled) {
+                const minutesStalled = Math.floor((new Date() - new Date(agent.last_active_at)) / 60000);
+                notifyStalled(agent.agent_name, agent.current_task);
+            }
+            
+            // PHASE 3: Enhanced error state
+            if (agent.status === 'error') {
+                notifyError(agent.agent_name, agent.error_message);
+                return `
+                    <div class="team-member agent-card bg-red-900/20 backdrop-blur-sm rounded-xl p-4 lg:p-5 border-2 border-red-500/50 shadow-lg shadow-red-500/20"
+                         style="animation-delay: ${index * 0.05}s"
+                         onclick="openAgentDetail('${escapeHtml(agent.agent_name)}')">
+                        <div class="flex items-start gap-3 mb-3">
+                            <svg class="w-6 h-6 text-red-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-red-300 text-lg mb-1">${escapeHtml(agent.agent_name)}</h3>
+                                <p class="text-xs text-slate-500 opacity-60 mb-2">${agentRoles[agent.agent_name] || ''}</p>
+                                <div class="bg-red-950/50 rounded-lg p-2 border border-red-500/30">
+                                    <p class="text-sm text-red-300 font-semibold mb-1">Error</p>
+                                    <p class="text-xs text-red-400">${escapeHtml(agent.error_message || 'Unknown error occurred')}</p>
+                                </div>
+                                <button class="text-xs text-red-400 hover:text-red-300 mt-2 underline">View details →</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-xs text-red-400/70">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>${formatDate(agent.last_active_at)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
             // Determine what to show for current task
             let taskDisplay = '';
             if (agent.current_task) {
+                // PHASE 3: Add stalled warning if applicable
+                const stalledWarning = isStalled ? `
+                    <div class="mt-2 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1 text-xs text-amber-400 flex items-center gap-1">
+                        ⚠ May be stalled (${Math.floor((new Date() - new Date(agent.last_active_at)) / 60000)}m)
+                    </div>
+                ` : '';
+                
                 taskDisplay = `
                     <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
-                    <p class="text-xs text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(agent.current_task)}</p>
+                    <div class="flex-1">
+                        <p class="text-xs text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(agent.current_task)}</p>
+                        ${stalledWarning}
+                    </div>
                 `;
             } else {
                 taskDisplay = `
@@ -1393,6 +1976,8 @@
             if (isTimelineOpen) {
                 panel.classList.add('open');
                 mainContent.classList.add('shifted');
+                // PHASE 3: Enhanced visual state
+                timelineBtn.classList.add('bg-purple-600', 'shadow-lg', 'shadow-purple-500/50');
                 timelineBtn.setAttribute('aria-expanded', 'true');
                 timelineBtn.setAttribute('aria-label', 'Close activity timeline');
                 // Reset timeline state and load first 10 items immediately
@@ -1405,6 +1990,8 @@
             } else {
                 panel.classList.remove('open');
                 mainContent.classList.remove('shifted');
+                // PHASE 3: Remove enhanced visual state
+                timelineBtn.classList.remove('bg-purple-600', 'shadow-lg', 'shadow-purple-500/50');
                 timelineBtn.setAttribute('aria-expanded', 'false');
                 timelineBtn.setAttribute('aria-label', 'Open activity timeline');
             }
@@ -1429,18 +2016,21 @@
                 const rangeStart = timelineOffset;
                 const rangeEnd = timelineOffset + pageSize - 1;
                 
+                // PHASE 2: Build URL with timeline filter
+                let url = `${SUPABASE_URL}/rest/v1/agent_status_history?select=*&order=started_at.desc`;
+                if (timelineFilter !== 'all') {
+                    url += `&agent_name=eq.${encodeURIComponent(timelineFilter)}`;
+                }
+                
                 // Fetch from agent_status_history table with pagination
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/agent_status_history?select=*&order=started_at.desc`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Range': `${rangeStart}-${rangeEnd}`,
-                            'Cache-Control': 'no-cache'
-                        }
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Range': `${rangeStart}-${rangeEnd}`,
+                        'Cache-Control': 'no-cache'
                     }
-                );
+                });
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -1559,8 +2149,11 @@
                 return;
             }
 
+            // PHASE 2: Collapse repeated entries before grouping by day
+            const collapsedActivities = collapseRepeatedEntries(activities);
+            
             // Group activities by day
-            const groupedByDay = groupActivitiesByDay(activities);
+            const groupedByDay = groupActivitiesByDay(collapsedActivities);
             
             let html = '';
             let itemIndex = reset ? 0 : container.querySelectorAll('.timeline-item-container').length;
@@ -1682,24 +2275,104 @@
                 color: 'from-slate-400 to-slate-500'
             };
 
-            // Calculate duration if ended_at exists
+            // PHASE 2: Handle grouped entries
+            if (activity.isGroup && activity.entries && activity.entries.length > 1) {
+                const startTime = new Date(activity.startTime);
+                const endTime = new Date(activity.endTime);
+                const durationMs = endTime - startTime;
+                const durationMins = Math.floor(durationMs / 60000);
+                const durationHours = Math.floor(durationMins / 60);
+                
+                let durationStr = durationHours > 0 
+                    ? `${durationHours}h ${durationMins % 60}m` 
+                    : `${durationMins}m`;
+                
+                const startedTime = startTime.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false 
+                });
+                const endedTime = endTime.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false 
+                });
+                
+                const side = index % 2 === 0 ? 'left' : 'right';
+                const animationDelay = index * 0.08;
+                
+                return `
+                    <div class="timeline-item-container ${side} grouped" 
+                         style="animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s both; border-left: 4px solid ${borderColor}; padding-left: 12px;">
+                        <div class="timeline-content-wrapper">
+                            <div class="timeline-content">
+                                <div class="font-semibold text-slate-100 text-sm md:text-base font-sans mb-1">
+                                    ${escapeHtml(agentName)}
+                                    <span class="text-xs text-purple-400 ml-2">· ${activity.entries.length} sessions</span>
+                                </div>
+                            </div>
+                            <div class="timeline-content">
+                                <p class="text-sm md:text-base text-slate-200 leading-relaxed font-serif italic line-clamp-3">
+                                    ${escapeHtml(activity.task || 'No task description')}
+                                </p>
+                            </div>
+                            <div class="timeline-metadata">
+                                <div class="flex items-center gap-2 text-xs text-slate-400 font-sans">
+                                    <span>${startedTime} – ${endedTime}</span>
+                                    <span class="text-slate-600">•</span>
+                                    <span>${durationStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-icon-container">
+                            <div class="timeline-horizontal-line"></div>
+                            <div class="timeline-icon bg-gradient-to-br ${avatar.color} ${avatar.svg ? 'p-2.5' : 'text-xl'}"
+                                 title="${agentName}">
+                                ${avatar.svg || avatar.emoji}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // PHASE 3: Enhanced duration labels with clarity
             let durationText = '';
-            if (activity.ended_at) {
+            if (activity.is_live) {
+                const startTime = new Date(activity.started_at);
+                const now = new Date();
+                const durationMs = now - startTime;
+                const durationMins = Math.floor(durationMs / 60000);
+                const durationHours = Math.floor(durationMins / 60);
+                
+                let durationStr = durationHours > 0 
+                    ? `${durationHours}h ${durationMins % 60}m` 
+                    : `${durationMins}m`;
+                
+                durationText = `<span class="inline-flex items-center gap-1 text-green-400 font-semibold"><span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span>In progress (${durationStr})</span>`;
+            } else if (activity.ended_at) {
                 const startTime = new Date(activity.started_at);
                 const endTime = new Date(activity.ended_at);
                 const durationMs = endTime - startTime;
                 const durationMins = Math.floor(durationMs / 60000);
                 const durationHours = Math.floor(durationMins / 60);
                 
+                let durationStr = '';
                 if (durationHours > 0) {
                     const remainingMins = durationMins % 60;
-                    durationText = remainingMins > 0 
+                    durationStr = remainingMins > 0 
                         ? `${durationHours}h ${remainingMins}m` 
                         : `${durationHours}h`;
                 } else if (durationMins > 0) {
-                    durationText = `${durationMins}m`;
+                    durationStr = `${durationMins}m`;
                 } else {
-                    durationText = '<1m';
+                    durationStr = '<1m';
+                }
+                
+                // Add clarity prefix based on status
+                if (activity.status === 'failed' || activity.status === 'error') {
+                    durationText = `<span class="text-red-400">✗ Failed after ${durationStr}</span>`;
+                } else {
+                    durationText = `<span class="text-slate-400">✓ Completed in ${durationStr}</span>`;
                 }
             }
 
@@ -1707,7 +2380,7 @@
             let statusClass = '';
             if (activity.is_live) {
                 statusClass = 'live';
-            } else if (activity.status === 'error') {
+            } else if (activity.status === 'error' || activity.status === 'failed') {
                 statusClass = 'error';
             }
 
@@ -1743,15 +2416,13 @@
                             </p>
                         </div>
                         
-                        <!-- Timestamp Info -->
+                        <!-- Timestamp Info - PHASE 3: Enhanced clarity -->
                         <div class="timeline-metadata">
-                            <div class="flex items-center gap-2 text-xs text-slate-500 font-sans">
-                                <span>${startedTime}</span>
-                                ${activity.is_live 
-                                    ? `<span class="text-slate-600">•</span><span class="text-green-400 font-semibold">LIVE</span>` 
-                                    : durationText 
-                                        ? `<span class="text-slate-600">•</span><span>${durationText}</span>`
-                                        : ''
+                            <div class="flex items-center gap-2 text-xs text-slate-400 font-sans">
+                                <span class="text-slate-400">${startedTime}</span>
+                                ${durationText 
+                                    ? `<span class="text-slate-600">•</span>${durationText}`
+                                    : ''
                                 }
                             </div>
                         </div>
@@ -1803,6 +2474,24 @@
         }
 
         // Initial load
+        // PHASE 2: Initialize view mode from localStorage
+        if (viewMode && viewMode !== 'card') {
+            const content = document.getElementById('status-content');
+            if (content) {
+                content.classList.add(`view-${viewMode}`);
+            }
+            // Update button state
+            document.querySelectorAll('.view-mode-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('view' + viewMode.charAt(0).toUpperCase() + viewMode.slice(1));
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+        
+        // PHASE 2: Initialize sort from localStorage
+        if (sortBy) {
+            const sortSelect = document.getElementById('sortBy');
+            if (sortSelect) sortSelect.value = sortBy;
+        }
+        
         fetchAgentStatus();
         startCountdown();
         scheduleNextRefresh();
