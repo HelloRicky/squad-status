@@ -971,13 +971,20 @@
                         is_live: a.ended_at === null // Mark as live if no end time
                     }));
                 
+                // Separate LIVE and completed activities
+                const liveActivities = processedActivities.filter(a => a.is_live);
+                const completedActivities = processedActivities.filter(a => !a.is_live);
+                
+                // Combine: LIVE first (sorted by started_at desc), then completed (sorted by started_at desc)
+                const sortedActivities = [...liveActivities, ...completedActivities];
+                
                 // Check if we've reached the end
                 // If we got fewer items than requested, there's no more data
                 if (activities.length < pageSize) {
                     hasMoreActivities = false;
                 }
 
-                renderTimeline(processedActivities, reset);
+                renderTimeline(sortedActivities, reset);
                 timelineOffset += activities.length; // Increment by actual fetched count
             } catch (error) {
                 console.error('Error fetching activities:', error);
