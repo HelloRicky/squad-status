@@ -557,6 +557,7 @@
         let timelineOffset = 0;
         let isLoadingMore = false;
         let hasMoreActivities = true;
+        let displayedDates = new Set(); // Track which day tags we've already shown
 
         // Agent avatars mapping
         const agentAvatars = {
@@ -950,6 +951,7 @@
                 // Reset timeline state and load first 10 items immediately
                 timelineOffset = 0;
                 hasMoreActivities = true;
+                displayedDates.clear(); // Reset displayed dates tracker
                 fetchActivities(true); // Load initial 10 items
                 // Setup scroll listener for loading more
                 setupInfiniteScroll();
@@ -1037,11 +1039,14 @@
             const groupedByDay = groupActivitiesByDay(activities);
             
             let html = '';
-            let itemIndex = 0;
+            let itemIndex = reset ? 0 : container.querySelectorAll('.timeline-item-container').length;
             
             for (const [dateKey, dayActivities] of Object.entries(groupedByDay)) {
-                // Render day node
-                html += renderDayNode(dateKey);
+                // Only render day node if we haven't displayed it yet
+                if (!displayedDates.has(dateKey)) {
+                    html += renderDayNode(dateKey);
+                    displayedDates.add(dateKey);
+                }
                 
                 // Render activities for this day
                 dayActivities.forEach((activity, idx) => {
