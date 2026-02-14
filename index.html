@@ -212,15 +212,6 @@
                 <!-- Right: Action Buttons -->
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <button 
-                        id="timelineBtn"
-                        onclick="toggleTimeline()"
-                        class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="hidden sm:inline">Timeline</span>
-                    </button>
-                    <button 
                         id="refreshBtn"
                         onclick="manualRefresh()"
                         class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
@@ -229,6 +220,15 @@
                         </svg>
                         <span class="hidden sm:inline">Refresh</span>
                         <span id="countdown" class="text-blue-200 text-sm">(30)</span>
+                    </button>
+                    <button 
+                        id="timelineBtn"
+                        onclick="toggleTimeline()"
+                        class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Timeline</span>
                     </button>
                 </div>
             </div>
@@ -267,11 +267,15 @@
 
                 <!-- Timeline Content -->
                 <div id="timelineContent" class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <!-- Loading State -->
-                    <div class="text-center py-8">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-slate-700 border-t-indigo-500 mb-3"></div>
-                        <p class="text-slate-400 text-sm">Loading timeline...</p>
+                    <!-- Initial State - Scroll to Load -->
+                    <div class="text-center py-12">
+                        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                        <p class="text-slate-400 mb-2">Scroll down to load timeline</p>
+                        <p class="text-slate-500 text-sm">Activity feed will load as you scroll</p>
                     </div>
+                    <div id="timelineLoader" class="text-center py-4"></div>
                 </div>
             </div>
         </div>
@@ -674,10 +678,11 @@
             if (isTimelineOpen) {
                 panel.classList.add('open');
                 mainContent.classList.add('shifted');
-                // Load timeline data
+                // Reset timeline state but DON'T auto-load
                 timelineOffset = 0;
                 hasMoreActivities = true;
-                fetchActivities(true);
+                // Setup scroll listener for passive loading
+                setupInfiniteScroll();
             } else {
                 panel.classList.remove('open');
                 mainContent.classList.remove('shifted');
@@ -745,6 +750,7 @@
             const html = activities.map((activity, index) => renderTimelineItem(activity, index)).join('');
 
             if (reset) {
+                // Clear the initial "scroll to load" message
                 content.innerHTML = html;
                 if (hasMoreActivities) {
                     content.innerHTML += '<div id="timelineLoader" class="text-center py-4"></div>';
@@ -758,11 +764,6 @@
                 if (hasMoreActivities) {
                     content.insertAdjacentHTML('beforeend', '<div id="timelineLoader" class="text-center py-4"></div>');
                 }
-            }
-
-            // Setup infinite scroll
-            if (reset) {
-                setupInfiniteScroll();
             }
         }
 
@@ -850,7 +851,8 @@
             const content = e.target;
             const scrollPercentage = (content.scrollTop + content.clientHeight) / content.scrollHeight;
 
-            if (scrollPercentage > 0.8 && !isLoadingMore && hasMoreActivities) {
+            // Only load when user scrolls down to near the bottom (90%)
+            if (scrollPercentage > 0.9 && !isLoadingMore && hasMoreActivities) {
                 fetchActivities(false);
             }
         }
