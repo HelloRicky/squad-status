@@ -963,40 +963,9 @@
             }
 
             try {
-                // Fetch current working agents (only on initial load)
-                let currentActivities = [];
-                if (reset || timelineOffset === 0) {
-                    const currentResponse = await fetch(
-                        `${SUPABASE_URL}/rest/v1/agent_status?select=agent_id,agent_name,status,current_task,last_active_at&status=eq.working`,
-                        {
-                            headers: {
-                                'apikey': SUPABASE_ANON_KEY,
-                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                                'Cache-Control': 'no-cache'
-                            }
-                        }
-                    );
-
-                    if (currentResponse.ok) {
-                        const current = await currentResponse.json();
-                        // Transform to same format as history items
-                        currentActivities = current
-                            .filter(a => a.agent_name != null && a.current_task)
-                            .map(a => ({
-                                agent_id: a.agent_id,
-                                agent_name: a.agent_name,
-                                task: a.current_task,
-                                started_at: a.last_active_at,
-                                ended_at: null,  // still in progress
-                                status: 'working',
-                                is_live: true    // flag to mark as live activity
-                            }));
-                    }
-                }
-
-                // Fetch historical activities
+                // Fetch from agent_status_history table
                 const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/agent_status_history?order=started_at.desc&limit=10&offset=${timelineOffset}`,
+                    `${SUPABASE_URL}/rest/v1/agent_status_history?select=*&order=started_at.desc&limit=50`,
                     {
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
@@ -1012,17 +981,20 @@
 
                 const activities = await response.json();
                 
-                if (activities.length < 10) {
+                // Filter to only show activities with tasks, and mark current ones
+                const processedActivities = activities
+                    .filter(a => a.task) // Only show activities with a task
+                    .map(a => ({
+                        ...a,
+                        is_live: a.ended_at === null // Mark as live if no end time
+                    }));
+                
+                if (processedActivities.length < 50) {
                     hasMoreActivities = false;
                 }
 
-                // Prepend current activities to history (only on initial load)
-                const allActivities = reset || timelineOffset === 0 
-                    ? [...currentActivities, ...activities]
-                    : activities;
-
-                renderTimeline(allActivities, reset);
-                timelineOffset += activities.length;
+                renderTimeline(processedActivities, reset);
+                timelineOffset += processedActivities.length;
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 showTimelineError(error.message);
