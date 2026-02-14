@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Typography - use EB Garamond for serif elements */
+@layer base {
+	.font-serif {
+		font-family: 'EB Garamond', serif;
+	}
+	.font-sans {
+		font-family: 'Inter', sans-serif;
+	}
+}
+
 /* Custom animations from original design */
 @keyframes pulse-glow {
 	0%, 100% { opacity: 1; }
