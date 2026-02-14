@@ -26,9 +26,7 @@
 </script>
 
 <div
-	class="agent-card bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer relative"
-	class:border-2={agent.status === 'working' || agent.status === 'error'}
-	class:border={agent.status === 'idle'}
+	class="agent-card bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer relative {agent.status === 'working' ? 'border-2 border-green-500/50' : agent.status === 'error' ? 'border-2 border-red-500/50' : 'border border-yellow-500/50'}"
 	class:breathing-border={agent.status === 'working'}
 	class:stale-warning={staleness === 'warning'}
 	class:stale-critical={staleness === 'critical'}
@@ -39,9 +37,6 @@
 	class:flex-row={viewMode === 'table'}
 	class:items-center={viewMode === 'table'}
 	class:gap-4={viewMode === 'table'}
-	class:border-green-500/50={agent.status === 'working'}
-	class:border-yellow-500/50={agent.status === 'idle'}
-	class:border-red-500/50={agent.status === 'error'}
 	data-status={agent.status}
 >
 	<!-- Avatar -->
