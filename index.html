@@ -214,7 +214,7 @@
                     <button 
                         id="refreshBtn"
                         onclick="manualRefresh()"
-                        class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                        class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 h-10 md:h-12">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -224,7 +224,7 @@
                     <button 
                         id="timelineBtn"
                         onclick="toggleTimeline()"
-                        class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2">
+                        class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 h-10 md:h-12">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -267,15 +267,11 @@
 
                 <!-- Timeline Content -->
                 <div id="timelineContent" class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <!-- Initial State - Scroll to Load -->
+                    <!-- Loading State (will be replaced when timeline opens) -->
                     <div class="text-center py-12">
-                        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                        <p class="text-slate-400 mb-2">Scroll down to load timeline</p>
-                        <p class="text-slate-500 text-sm">Activity feed will load as you scroll</p>
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-indigo-500 mb-4"></div>
+                        <p class="text-slate-400">Loading timeline...</p>
                     </div>
-                    <div id="timelineLoader" class="text-center py-4"></div>
                 </div>
             </div>
         </div>
@@ -678,10 +674,11 @@
             if (isTimelineOpen) {
                 panel.classList.add('open');
                 mainContent.classList.add('shifted');
-                // Reset timeline state but DON'T auto-load
+                // Reset timeline state and load first 10 items immediately
                 timelineOffset = 0;
                 hasMoreActivities = true;
-                // Setup scroll listener for passive loading
+                fetchActivities(true); // Load initial 10 items
+                // Setup scroll listener for loading more
                 setupInfiniteScroll();
             } else {
                 panel.classList.remove('open');
