@@ -1199,34 +1199,38 @@
                 durationText = 'ongoing';
             }
 
-            // Determine status badge - check is_live flag first
-            let statusConfig;
+            // Determine status class for card styling
+            let cardStatusClass = '';
             if (activity.is_live) {
-                // LIVE current activity
-                statusConfig = {
-                    label: '🔴 LIVE',
-                    badge: 'bg-red-500/20 text-red-300 border border-red-500/40',
-                    dot: 'bg-red-500'
-                };
-            } else {
-                // Historical activity - infer from ended_at
-                const inferredStatus = activity.ended_at === null ? 'in_progress' : 'completed';
-                statusConfig = inferredStatus === 'in_progress' 
-                    ? {
-                        label: '⏳ In Progress',
-                        badge: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40',
-                        dot: 'bg-indigo-500'
-                      }
-                    : {
-                        label: '✅ Completed',
-                        badge: 'bg-green-500/20 text-green-300 border border-green-500/40',
-                        dot: 'bg-green-500'
-                      };
+                cardStatusClass = 'live';
+            } else if (activity.status === 'error') {
+                cardStatusClass = 'error';
+            } else if (activity.ended_at) {
+                cardStatusClass = 'completed';
             }
 
             // Alternate left/right positioning
             const side = index % 2 === 0 ? 'left' : 'right';
             const animationDelay = index * 0.08;
+
+            // Format started_at for display
+            const startedDate = new Date(activity.started_at);
+            const startedTime = startedDate.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+            
+            // Format ended_at if exists
+            let endedTime = '';
+            if (activity.ended_at) {
+                const endedDate = new Date(activity.ended_at);
+                endedTime = endedDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false 
+                });
+            }
 
             return `
                 <div class="timeline-item-container ${side} ${activity.is_live ? 'live' : ''}" 
@@ -1238,32 +1242,32 @@
                     <div class="timeline-dot"></div>
                     
                     <!-- Activity Card -->
-                    <div class="timeline-card ${activity.is_live ? 'live' : ''}" 
+                    <div class="timeline-card ${cardStatusClass}" 
                          style="animation-delay: ${animationDelay}s">
-                        <!-- Card Header -->
-                        <div class="flex items-center gap-3 mb-3">
+                        <!-- Icon + Task Description (Horizontal) -->
+                        <div class="flex items-start gap-3 mb-3">
                             <div class="flex-shrink-0">
                                 <div class="w-11 h-11 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg ${avatar.svg ? 'p-2' : 'text-lg'} ring-2 ring-slate-700/50">
                                     ${avatar.svg || avatar.emoji}
                                 </div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="font-bold text-white text-sm font-sans">${escapeHtml(agentName)}</div>
-                                <div class="text-xs text-slate-400 font-sans">${relativeTime}</div>
+                                <p class="text-sm text-slate-200 leading-relaxed font-serif italic">
+                                    ${escapeHtml(activity.task || 'No task description')}
+                                </p>
                             </div>
                         </div>
                         
-                        <!-- Task Description -->
-                        <p class="text-sm text-slate-200 leading-relaxed mb-3 font-serif italic">
-                            "${escapeHtml(activity.task || 'No task description')}"
-                        </p>
+                        <!-- Divider -->
+                        <div class="border-t border-slate-700/50 my-3"></div>
                         
-                        <!-- Status & Duration -->
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.badge} font-sans">
-                                ${statusConfig.label}
-                            </span>
-                            <span class="text-xs text-slate-400 font-medium font-sans">${durationText}</span>
+                        <!-- Timestamps at Bottom -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 font-sans">
+                            <span>Started: ${startedTime}</span>
+                            ${activity.ended_at 
+                                ? `<span class="text-slate-500">|</span><span>Duration: ${durationText}</span>` 
+                                : `<span class="text-green-400">● LIVE</span>`
+                            }
                         </div>
                     </div>
                 </div>
