@@ -61,8 +61,9 @@
 - [x] Update README
 - [x] Local testing (build successful)
 - [x] Restructure repository (SvelteKit at root, HTML archived)
-- [ ] Commit to dev branch
-- [ ] Test deployment
+- [x] Commit to dev branch (commit 71ccda1)
+- [x] Push to GitHub
+- [ ] Test deployment (pending)
 
 ---
 
