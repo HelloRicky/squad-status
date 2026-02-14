@@ -18,7 +18,7 @@
 <div class="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 mb-6">
 	<div class="flex items-start justify-between gap-4">
 		<div class="flex-1 min-w-0">
-			<h1 class="text-2xl md:text-3xl font-bold mb-1.5 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+			<h1 class="gradient-title text-2xl md:text-3xl font-bold mb-1.5">
 				Squad Status
 			</h1>
 			<p class="text-slate-400 text-xs md:text-sm">Real-time agent activity dashboard</p>
@@ -100,6 +100,15 @@
 </div>
 
 <style>
+	/* Gradient title - explicit CSS for cross-browser support */
+	.gradient-title {
+		background: linear-gradient(to right, #60a5fa, #a78bfa, #f9a8d4);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		color: transparent;
+	}
+
 	.view-mode-btn {
 		color: rgba(148, 163, 184, 0.8);
 		transition: all 0.2s ease;

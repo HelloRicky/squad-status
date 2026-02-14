@@ -1,6 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SUPABASE_URL, SUPABASE_SERVICE_KEY } from '$env/static/private';
+// Hardcoded for now - using MC Supabase credentials
+const SUPABASE_URL = 'https://eetgrdpfxvlefcvshvjx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_tjVMDRXJaVZ2eScQe6oR_Q_2hdK1BLS';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const offset = parseInt(url.searchParams.get('offset') || '0');
@@ -16,9 +18,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		const response = await fetch(query, {
 			headers: {
-				apikey: SUPABASE_SERVICE_KEY,
-				Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+				apikey: SUPABASE_ANON_KEY,
+				Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
 				'Content-Type': 'application/json',
+				'Cache-Control': 'no-cache',
 				Prefer: 'count=exact'
 			}
 		});

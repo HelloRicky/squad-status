@@ -10,6 +10,12 @@
 	.font-sans {
 		font-family: 'Inter', sans-serif;
 	}
+	
+	/* Dark theme background */
+	html, body {
+		background: #0f172a; /* slate-900 fallback */
+		color: white;
+	}
 }
 
 /* Custom animations from original design */
