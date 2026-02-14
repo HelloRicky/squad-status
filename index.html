@@ -281,137 +281,104 @@
         /* Timeline Item Container */
         .timeline-item-container {
             position: relative;
-            margin: 1.5rem 0;
+            margin: 2rem 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
         }
 
-        /* Alternating left/right - APPLIED TO ALL BREAKPOINTS */
-        .timeline-item-container.left {
-            justify-content: flex-start;
-            padding-right: 50%;
-            padding-left: 0.75rem;
-        }
-
-        .timeline-item-container.right {
-            justify-content: flex-end;
-            padding-left: 50%;
-            padding-right: 0.75rem;
-        }
-
-        /* Mobile: slightly tighter padding for smaller screens */
-        @media (max-width: 640px) {
-            .timeline-item-container.left {
-                padding-right: 50%;
-                padding-left: 0.5rem;
-            }
-
-            .timeline-item-container.right {
-                padding-left: 50%;
-                padding-right: 0.5rem;
-            }
-        }
-
-        /* Timeline Card */
-        .timeline-card {
+        /* Task Content (above the line) */
+        .timeline-content {
             position: relative;
             width: 100%;
-            max-width: 280px;
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            backdrop-filter: blur(10px);
-            box-shadow: 
-                0 4px 20px rgba(0, 0, 0, 0.3),
-                0 0 40px rgba(139, 92, 246, 0.1);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 320px;
+            padding: 0 0.75rem;
+            margin-bottom: 0.75rem;
+            text-align: center;
         }
 
-        /* Mobile: smaller, more compact cards */
+        /* Alternating left/right text alignment */
+        .timeline-item-container.left .timeline-content {
+            text-align: right;
+        }
+
+        .timeline-item-container.right .timeline-content {
+            text-align: left;
+        }
+
         @media (max-width: 640px) {
-            .timeline-card {
-                max-width: 100%;
-                padding: 1rem;
-                border-radius: 0.75rem;
+            .timeline-content {
+                max-width: 280px;
             }
         }
 
-        .timeline-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 
-                0 8px 30px rgba(0, 0, 0, 0.4),
-                0 0 60px rgba(139, 92, 246, 0.2);
-            border-color: rgba(139, 92, 246, 0.4);
-        }
-
-        .timeline-card.live {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(30, 41, 59, 0.8));
-            border-color: rgba(34, 197, 94, 0.5);
-            animation: breathingGreen 2s ease-in-out infinite, slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .timeline-card.completed {
-            border: 2px solid rgba(168, 85, 247, 0.5);
-        }
-
-        .timeline-card.error {
-            border: 2px solid rgba(239, 68, 68, 0.6);
-        }
-
-        /* Center Dot Connector */
-        .timeline-dot {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 14px;
-            height: 14px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border: 3px solid rgba(15, 23, 42, 0.95);
+        /* Profile Icon ON the timeline (replaces dot) */
+        .timeline-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            box-shadow: 
-                0 0 0 4px rgba(139, 92, 246, 0.2),
-                0 0 20px rgba(139, 92, 246, 0.6);
-            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             transition: all 0.3s ease;
         }
 
-        .timeline-item-container.live .timeline-dot {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            box-shadow: 
-                0 0 0 4px rgba(34, 197, 94, 0.2),
-                0 0 30px rgba(34, 197, 94, 0.8);
-            animation: pulseDotGreen 2s ease-in-out infinite;
+        .timeline-icon:hover {
+            transform: scale(1.1);
         }
 
-        /* Connecting Line from dot to card */
-        .timeline-connector {
+        /* LIVE status - green glow */
+        .timeline-item-container.live .timeline-icon {
+            box-shadow: 
+                0 0 0 3px rgba(34, 197, 94, 0.3),
+                0 0 20px rgba(34, 197, 94, 0.6),
+                0 4px 12px rgba(0, 0, 0, 0.4);
+            animation: pulseGlowGreen 2s ease-in-out infinite;
+        }
+
+        /* Error status - red tint */
+        .timeline-item-container.error .timeline-icon {
+            box-shadow: 
+                0 0 0 3px rgba(239, 68, 68, 0.3),
+                0 0 20px rgba(239, 68, 68, 0.6),
+                0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Horizontal connector line */
+        .timeline-horizontal-line {
             position: absolute;
             top: 50%;
+            left: -100px;
+            right: -100px;
             height: 2px;
             background: linear-gradient(90deg, 
-                rgba(139, 92, 246, 0.4), 
+                transparent,
+                rgba(139, 92, 246, 0.3) 20%,
+                rgba(139, 92, 246, 0.5) 50%,
+                rgba(139, 92, 246, 0.3) 80%,
                 transparent
             );
-            z-index: 1;
+            transform: translateY(-50%);
+            z-index: 5;
+            pointer-events: none;
         }
 
-        .timeline-item-container.left .timeline-connector {
-            left: 50%;
-            right: 0;
-            transform: translateY(-50%);
+        @media (max-width: 640px) {
+            .timeline-horizontal-line {
+                left: -80px;
+                right: -80px;
+            }
         }
 
-        .timeline-item-container.right .timeline-connector {
-            right: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            background: linear-gradient(90deg, 
-                transparent,
-                rgba(139, 92, 246, 0.4)
-            );
+        /* Metadata (below the line) */
+        .timeline-metadata {
+            position: relative;
+            margin-top: 0.75rem;
+            text-align: center;
         }
 
         /* Animations */
@@ -437,31 +404,18 @@
             }
         }
 
-        @keyframes breathingGreen {
+        @keyframes pulseGlowGreen {
             0%, 100% {
                 box-shadow: 
-                    0 4px 20px rgba(0, 0, 0, 0.3),
-                    0 0 20px rgba(34, 197, 94, 0.4);
+                    0 0 0 3px rgba(34, 197, 94, 0.3),
+                    0 0 20px rgba(34, 197, 94, 0.6),
+                    0 4px 12px rgba(0, 0, 0, 0.4);
             }
             50% {
                 box-shadow: 
-                    0 4px 20px rgba(0, 0, 0, 0.3),
-                    0 0 40px rgba(34, 197, 94, 0.8);
-            }
-        }
-
-        @keyframes pulseDotGreen {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                box-shadow: 
-                    0 0 0 4px rgba(34, 197, 94, 0.2),
-                    0 0 30px rgba(34, 197, 94, 0.8);
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-                box-shadow: 
-                    0 0 0 6px rgba(34, 197, 94, 0.3),
-                    0 0 40px rgba(34, 197, 94, 1);
+                    0 0 0 5px rgba(34, 197, 94, 0.5),
+                    0 0 30px rgba(34, 197, 94, 0.9),
+                    0 4px 12px rgba(0, 0, 0, 0.4);
             }
         }
     </style>
@@ -1174,8 +1128,6 @@
                 color: 'from-slate-400 to-slate-500'
             };
 
-            const relativeTime = formatDate(activity.started_at);
-            
             // Calculate duration if ended_at exists
             let durationText = '';
             if (activity.ended_at) {
@@ -1195,18 +1147,14 @@
                 } else {
                     durationText = '<1m';
                 }
-            } else {
-                durationText = 'ongoing';
             }
 
-            // Determine status class for card styling
-            let cardStatusClass = '';
+            // Determine status class
+            let statusClass = '';
             if (activity.is_live) {
-                cardStatusClass = 'live';
+                statusClass = 'live';
             } else if (activity.status === 'error') {
-                cardStatusClass = 'error';
-            } else if (activity.ended_at) {
-                cardStatusClass = 'completed';
+                statusClass = 'error';
             }
 
             // Alternate left/right positioning
@@ -1220,53 +1168,39 @@
                 minute: '2-digit',
                 hour12: false 
             });
-            
-            // Format ended_at if exists
-            let endedTime = '';
-            if (activity.ended_at) {
-                const endedDate = new Date(activity.ended_at);
-                endedTime = endedDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: false 
-                });
-            }
 
             return `
-                <div class="timeline-item-container ${side} ${activity.is_live ? 'live' : ''}" 
-                     style="animation-delay: ${animationDelay}s">
-                    <!-- Connecting Line -->
-                    <div class="timeline-connector"></div>
+                <div class="timeline-item-container ${side} ${statusClass}" 
+                     style="animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s both">
                     
-                    <!-- Center Dot -->
-                    <div class="timeline-dot"></div>
+                    <!-- Task Description (ABOVE the line) -->
+                    <div class="timeline-content">
+                        <p class="text-sm text-slate-200 leading-relaxed font-serif italic">
+                            ${escapeHtml(activity.task || 'No task description')}
+                        </p>
+                    </div>
                     
-                    <!-- Activity Card -->
-                    <div class="timeline-card ${cardStatusClass}" 
-                         style="animation-delay: ${animationDelay}s">
-                        <!-- Icon + Task Description (Horizontal) -->
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="flex-shrink-0">
-                                <div class="w-11 h-11 rounded-full bg-gradient-to-br ${avatar.color} flex items-center justify-center shadow-lg ${avatar.svg ? 'p-2' : 'text-lg'} ring-2 ring-slate-700/50">
-                                    ${avatar.svg || avatar.emoji}
-                                </div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-slate-200 leading-relaxed font-serif italic">
-                                    ${escapeHtml(activity.task || 'No task description')}
-                                </p>
-                            </div>
+                    <!-- Profile Icon ON the center timeline with horizontal line -->
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <!-- Horizontal Line -->
+                        <div class="timeline-horizontal-line"></div>
+                        
+                        <!-- Profile Icon -->
+                        <div class="timeline-icon bg-gradient-to-br ${avatar.color} ${avatar.svg ? 'p-2.5' : 'text-xl'}"
+                             title="${agentName}">
+                            ${avatar.svg || avatar.emoji}
                         </div>
-                        
-                        <!-- Divider -->
-                        <div class="border-t border-slate-700/50 my-3"></div>
-                        
-                        <!-- Timestamps at Bottom -->
-                        <div class="flex items-center justify-between text-xs text-slate-400 font-sans">
-                            <span>Started: ${startedTime}</span>
-                            ${activity.ended_at 
-                                ? `<span class="text-slate-500">|</span><span>Duration: ${durationText}</span>` 
-                                : `<span class="text-green-400">● LIVE</span>`
+                    </div>
+                    
+                    <!-- Timestamp Info (BELOW the line) -->
+                    <div class="timeline-metadata">
+                        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 font-sans">
+                            <span>${startedTime}</span>
+                            ${activity.is_live 
+                                ? `<span class="text-slate-500">•</span><span class="text-green-400 font-semibold">LIVE</span>` 
+                                : durationText 
+                                    ? `<span class="text-slate-500">•</span><span>${durationText}</span>`
+                                    : ''
                             }
                         </div>
                     </div>
