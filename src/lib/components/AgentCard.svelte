@@ -23,20 +23,24 @@
 		};
 		return colors[status as keyof typeof colors] || 'text-slate-400';
 	}
+
+	let cardClasses = $derived(() => {
+		const base = 'agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer relative';
+		const breathing = agent.status === 'working' ? 'breathing-border' : '';
+		const border = agent.status === 'working' || agent.status === 'error' ? 'border-2' : 'border';
+		const borderColor = agent.status === 'working' ? 'border-green-500/50' : agent.status === 'error' ? 'border-red-500/50' : 'border-slate-700/50';
+		const shadow = agent.status === 'working' || agent.status === 'error' ? 'shadow-lg' : '';
+		const shadowColor = agent.status === 'working' ? 'shadow-green-500/20' : agent.status === 'error' ? 'shadow-red-500/20' : '';
+		const stale = staleness === 'warning' ? 'stale-warning' : staleness === 'critical' ? 'stale-critical' : '';
+		const padding = viewMode === 'card' ? 'p-5 md:p-6' : viewMode === 'compact' ? 'p-3' : 'p-4 lg:p-5';
+		const layout = viewMode === 'table' ? 'flex flex-row items-center gap-4' : '';
+		
+		return `${base} ${breathing} ${border} ${borderColor} ${shadow} ${shadowColor} ${stale} ${padding} ${layout}`;
+	});
 </script>
 
 <div
-	class="agent-card bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer relative {agent.status === 'working' ? 'border-2 border-green-500/50' : agent.status === 'error' ? 'border-2 border-red-500/50' : 'border border-yellow-500/50'}"
-	class:breathing-border={agent.status === 'working'}
-	class:stale-warning={staleness === 'warning'}
-	class:stale-critical={staleness === 'critical'}
-	class:p-6={viewMode === 'card'}
-	class:p-3={viewMode === 'compact'}
-	class:p-4={viewMode === 'table'}
-	class:flex={viewMode === 'table'}
-	class:flex-row={viewMode === 'table'}
-	class:items-center={viewMode === 'table'}
-	class:gap-4={viewMode === 'table'}
+	class={cardClasses()}
 	data-status={agent.status}
 >
 	<!-- Avatar -->
