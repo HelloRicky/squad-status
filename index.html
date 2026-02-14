@@ -808,8 +808,21 @@
                 durationText = 'In progress...';
             }
 
-            // Determine status badge
-            const statusConfig = getStatusConfig(activity.status);
+            // Determine status badge - infer from ended_at, not status field
+            // If ended_at is null → task is in progress
+            // If ended_at exists → task is completed
+            const inferredStatus = activity.ended_at === null ? 'in_progress' : 'completed';
+            const statusConfig = inferredStatus === 'in_progress' 
+                ? {
+                    label: 'In progress',
+                    badge: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                    dot: 'bg-indigo-500'
+                  }
+                : {
+                    label: 'Completed',
+                    badge: 'bg-green-500/10 text-green-400 border border-green-500/20',
+                    dot: 'bg-green-500'
+                  };
 
             return `
                 <div class="timeline-item flex gap-3 pb-4 border-b border-slate-700/30 last:border-0" 
