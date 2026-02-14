@@ -993,6 +993,9 @@
                 hasMoreActivities = true;
             }
 
+            // Show spinner BEFORE fetch starts
+            showTimelineSpinner(reset);
+
             try {
                 const pageSize = 20;
                 const rangeStart = timelineOffset;
@@ -1038,13 +1041,54 @@
                     hasMoreActivities = false;
                 }
 
+                // Render timeline with data
                 renderTimeline(sortedActivities, reset);
                 timelineOffset += activities.length; // Increment by actual fetched count
+                
+                // Hide spinner AFTER data is rendered
+                hideTimelineSpinner();
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 showTimelineError(error.message);
             } finally {
                 isLoadingMore = false;
+            }
+        }
+
+        function showTimelineSpinner(reset = false) {
+            const container = document.getElementById('timelineItems');
+            
+            if (reset) {
+                // For initial load, show spinner with timeline line
+                container.innerHTML = `
+                    <!-- Vertical Timeline Line -->
+                    <div class="timeline-line"></div>
+                    <div id="timelineLoader" class="text-center py-6">
+                        <div class="timeline-spinner"></div>
+                    </div>
+                `;
+            } else {
+                // For pagination, append spinner at the bottom
+                const existingLoader = document.getElementById('timelineLoader');
+                const existingEnd = document.getElementById('timelineEnd');
+                
+                // Remove existing loader/end marker if present
+                if (existingLoader) existingLoader.remove();
+                if (existingEnd) existingEnd.remove();
+                
+                // Add spinner at the bottom
+                container.insertAdjacentHTML('beforeend', `
+                    <div id="timelineLoader" class="text-center py-6">
+                        <div class="timeline-spinner"></div>
+                    </div>
+                `);
+            }
+        }
+
+        function hideTimelineSpinner() {
+            const loader = document.getElementById('timelineLoader');
+            if (loader) {
+                loader.remove();
             }
         }
 
@@ -1091,15 +1135,10 @@
                     <div class="timeline-line"></div>
                     ${html}
                 `;
-                if (hasMoreActivities) {
+                // Add "End of timeline" marker if no more activities
+                if (!hasMoreActivities) {
                     container.innerHTML += `
-                        <div id="timelineLoader" class="text-center py-6">
-                            <div class="timeline-spinner"></div>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML += `
-                        <div class="text-center py-8 px-4">
+                        <div id="timelineEnd" class="text-center py-8 px-4">
                             <div class="inline-flex items-center gap-2 text-slate-500 font-serif italic text-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -1110,22 +1149,17 @@
                     `;
                 }
             } else {
-                const loader = document.getElementById('timelineLoader');
+                // Remove any existing end marker
                 const endMarker = document.getElementById('timelineEnd');
-                if (loader) {
-                    loader.remove();
-                }
                 if (endMarker) {
                     endMarker.remove();
                 }
+                
+                // Append new content
                 container.insertAdjacentHTML('beforeend', html);
-                if (hasMoreActivities) {
-                    container.insertAdjacentHTML('beforeend', `
-                        <div id="timelineLoader" class="text-center py-6">
-                            <div class="timeline-spinner"></div>
-                        </div>
-                    `);
-                } else {
+                
+                // Add "End of timeline" marker if no more activities
+                if (!hasMoreActivities) {
                     container.insertAdjacentHTML('beforeend', `
                         <div id="timelineEnd" class="text-center py-8 px-4">
                             <div class="inline-flex items-center gap-2 text-slate-500 font-serif italic text-sm">
