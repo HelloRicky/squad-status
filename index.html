@@ -971,13 +971,18 @@
             }
 
             try {
-                // Fetch from agent_status_history table
+                const pageSize = 20;
+                const rangeStart = timelineOffset;
+                const rangeEnd = timelineOffset + pageSize - 1;
+                
+                // Fetch from agent_status_history table with pagination
                 const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/agent_status_history?select=*&order=started_at.desc&limit=50`,
+                    `${SUPABASE_URL}/rest/v1/agent_status_history?select=*&order=started_at.desc`,
                     {
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
                             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Range': `${rangeStart}-${rangeEnd}`,
                             'Cache-Control': 'no-cache'
                         }
                     }
@@ -997,12 +1002,14 @@
                         is_live: a.ended_at === null // Mark as live if no end time
                     }));
                 
-                if (processedActivities.length < 50) {
+                // Check if we've reached the end
+                // If we got fewer items than requested, there's no more data
+                if (activities.length < pageSize) {
                     hasMoreActivities = false;
                 }
 
                 renderTimeline(processedActivities, reset);
-                timelineOffset += processedActivities.length;
+                timelineOffset += activities.length; // Increment by actual fetched count
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 showTimelineError(error.message);
@@ -1047,15 +1054,41 @@
                 container.innerHTML = html;
                 if (hasMoreActivities) {
                     container.innerHTML += '<div id="timelineLoader" class="text-center py-4"></div>';
+                } else {
+                    container.innerHTML += `
+                        <div class="text-center py-8 px-4">
+                            <div class="inline-flex items-center gap-2 text-slate-500 font-serif italic text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>End of timeline</span>
+                            </div>
+                        </div>
+                    `;
                 }
             } else {
                 const loader = document.getElementById('timelineLoader');
+                const endMarker = document.getElementById('timelineEnd');
                 if (loader) {
                     loader.remove();
+                }
+                if (endMarker) {
+                    endMarker.remove();
                 }
                 container.insertAdjacentHTML('beforeend', html);
                 if (hasMoreActivities) {
                     container.insertAdjacentHTML('beforeend', '<div id="timelineLoader" class="text-center py-4"></div>');
+                } else {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div id="timelineEnd" class="text-center py-8 px-4">
+                            <div class="inline-flex items-center gap-2 text-slate-500 font-serif italic text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>End of timeline</span>
+                            </div>
+                        </div>
+                    `);
                 }
             }
         }
