@@ -452,6 +452,26 @@
                     0 4px 12px rgba(0, 0, 0, 0.4);
             }
         }
+
+        /* Loading Spinner Animation */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .timeline-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: rgba(139, 92, 246, 0.8);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
@@ -1072,7 +1092,11 @@
                     ${html}
                 `;
                 if (hasMoreActivities) {
-                    container.innerHTML += '<div id="timelineLoader" class="text-center py-4"></div>';
+                    container.innerHTML += `
+                        <div id="timelineLoader" class="text-center py-6">
+                            <div class="timeline-spinner"></div>
+                        </div>
+                    `;
                 } else {
                     container.innerHTML += `
                         <div class="text-center py-8 px-4">
@@ -1096,7 +1120,11 @@
                 }
                 container.insertAdjacentHTML('beforeend', html);
                 if (hasMoreActivities) {
-                    container.insertAdjacentHTML('beforeend', '<div id="timelineLoader" class="text-center py-4"></div>');
+                    container.insertAdjacentHTML('beforeend', `
+                        <div id="timelineLoader" class="text-center py-6">
+                            <div class="timeline-spinner"></div>
+                        </div>
+                    `);
                 } else {
                     container.insertAdjacentHTML('beforeend', `
                         <div id="timelineEnd" class="text-center py-8 px-4">
