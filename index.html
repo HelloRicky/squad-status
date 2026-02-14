@@ -139,6 +139,8 @@
             gap: 1rem;
             max-width: 900px;
             margin: 0 auto;
+            justify-content: center; /* Center grid when <5 agents */
+            max-width: fit-content;
         }
 
         @media (min-width: 1024px) {
@@ -583,10 +585,27 @@
             opacity: 1;
         }
         
-        /* Status indicator accessibility - larger size */
+        /* Status indicator accessibility - larger size with shapes */
         .status-dot {
-            width: 12px !important;
-            height: 12px !important;
+            width: 16px !important;
+            height: 16px !important;
+        }
+
+        .status-shape-working {
+            border-radius: 50%; /* Circle */
+        }
+
+        .status-shape-idle {
+            border-radius: 2px; /* Square */
+        }
+
+        .status-shape-error {
+            width: 0 !important;
+            height: 0 !important;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 14px solid #EF4444; /* Triangle */
+            background: transparent !important;
         }
 
     </style>
@@ -701,6 +720,44 @@
         </div>
     </div>
 
+    <!-- Agent Detail Modal -->
+    <div id="agentModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-start">
+                <div>
+                    <h2 id="modalAgentName" class="text-2xl font-bold"></h2>
+                    <p id="modalAgentRole" class="text-slate-400"></p>
+                </div>
+                <button onclick="closeAgentModal()" class="text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="modalContent" class="p-6">
+                <!-- Task History -->
+                <h3 class="text-lg font-semibold mb-3">Recent Tasks</h3>
+                <div id="modalTaskHistory" class="space-y-2 mb-6">
+                    Loading...
+                </div>
+                
+                <!-- Performance Metrics -->
+                <h3 class="text-lg font-semibold mb-3">Performance</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-sm text-slate-400">Tasks Completed</div>
+                        <div id="modalTasksCompleted" class="text-2xl font-bold">--</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-sm text-slate-400">Avg Duration</div>
+                        <div id="modalAvgDuration" class="text-2xl font-bold">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const SUPABASE_URL = 'https://your-project.supabase.co';
@@ -779,6 +836,15 @@
             'Linus': 'Backend & DevOps',
             'Tesla': 'QA & Research',
             'Shakespeare': 'Content & Growth'
+        };
+
+        // Agent timeline colors for color-coded borders
+        const agentTimelineColors = {
+            'Ducki (Main)': '#FFD700',
+            'Pixel': '#A855F7',
+            'Linus': '#06B6D4',
+            'Tesla': '#10B981',
+            'Shakespeare': '#F59E0B'
         };
 
 
@@ -878,11 +944,74 @@
         }
 
 
-        // Open agent detail modal/panel
-        function openAgentDetail(agentName) {
-            console.log('Opening details for:', agentName);
-            alert(`Agent details for ${agentName}\n\n(Detail panel coming soon: full task history, performance metrics, configuration options)`);
+        // Open agent detail modal
+        async function openAgentDetail(agentName) {
+            const modal = document.getElementById('agentModal');
+            document.getElementById('modalAgentName').textContent = agentName;
+            document.getElementById('modalAgentRole').textContent = agentRoles[agentName] || '';
+            
+            modal.classList.remove('hidden');
+            
+            // Fetch task history
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/agent_status_history?agent_name=eq.${encodeURIComponent(agentName)}&order=started_at.desc&limit=20`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    }
+                );
+                
+                const tasks = await response.json();
+                
+                const taskHTML = tasks.map(t => `
+                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm">
+                        <div class="text-slate-300">${escapeHtml(t.task || 'No description')}</div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            ${new Date(t.started_at).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('modalTaskHistory').innerHTML = taskHTML || '<div class="text-slate-500 text-sm">No tasks found</div>';
+                
+                // Calculate metrics
+                const completed = tasks.filter(t => t.ended_at).length;
+                document.getElementById('modalTasksCompleted').textContent = completed;
+                
+                if (completed > 0) {
+                    const durations = tasks
+                        .filter(t => t.ended_at && t.started_at)
+                        .map(t => new Date(t.ended_at) - new Date(t.started_at));
+                    
+                    if (durations.length > 0) {
+                        const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+                        const avgMins = Math.floor(avg / 60000);
+                        document.getElementById('modalAvgDuration').textContent = `${avgMins}m`;
+                    } else {
+                        document.getElementById('modalAvgDuration').textContent = '--';
+                    }
+                } else {
+                    document.getElementById('modalAvgDuration').textContent = '--';
+                }
+            } catch (error) {
+                console.error('Error fetching agent details:', error);
+                document.getElementById('modalTaskHistory').innerHTML = '<div class="text-red-400 text-sm">Error loading tasks</div>';
+            }
         }
+
+        function closeAgentModal() {
+            document.getElementById('agentModal').classList.add('hidden');
+        }
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAgentModal();
+            }
+        });
 
         async function fetchAgentStatus() {
             try {
@@ -943,6 +1072,9 @@
                     
                     <!-- Team Members -->
                     <div class="team-container">
+                        <div class="text-sm text-slate-400 mb-3 text-center">
+                            Managed Agents (<span id="team-count">${team.length}</span>)
+                        </div>
                         <div class="connector-lines"></div>
                         <div class="team-grid">
                             ${team.map((agent, index) => renderTeamMemberCard(agent, index + 1)).join('')}
@@ -1003,11 +1135,11 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 status-dot status-shape-working bg-green-500 border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-yellow-500 rounded-full border-2 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 status-dot status-shape-idle bg-yellow-500 border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 status-shape-error border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
@@ -1020,7 +1152,7 @@
                                     ${statusConfig.label}
                                 </span>
                             </div>
-                            <p class="text-sm md:text-base text-slate-400 mb-2">${agentRoles[agent.agent_name] || ''}</p>
+                            <p class="text-xs text-slate-500 opacity-60 mb-2">${agentRoles[agent.agent_name] || ''}</p>
                             
                             <!-- Current Task (mobile - shown below name/role) -->
                             <div class="md:hidden bg-slate-900/50 rounded-lg px-3 py-2.5 border border-slate-700/30 mb-2">
@@ -1102,16 +1234,16 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 status-dot status-shape-working bg-green-500 border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-yellow-500 rounded-full border-2 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 status-dot status-shape-idle bg-yellow-500 border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 status-shape-error border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
                         <h3 class="text-lg lg:text-xl font-bold text-white mb-1">${escapeHtml(agent.agent_name)}</h3>
-                        <p class="text-xs text-slate-400 mb-2">${agentRoles[agent.agent_name] || ''}</p>
+                        <p class="text-xs text-slate-500 opacity-60 mb-2">${agentRoles[agent.agent_name] || ''}</p>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.badge}">
                             <span class="status-dot ${statusConfig.dot}"></span>
                             ${statusConfig.label}
@@ -1543,6 +1675,7 @@
                 'ducki': 'Ducki (Main)'
             };
             const agentName = activity.agent_name || agentNameMap[activity.agent_id] || activity.agent_id;
+            const borderColor = agentTimelineColors[agentName] || '#64748b';
             
             const avatar = agentAvatars[agentName] || {
                 emoji: '❓',
@@ -1592,7 +1725,7 @@
 
             return `
                 <div class="timeline-item-container ${side} ${statusClass}" 
-                     style="animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s both">
+                     style="animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s both; border-left: 4px solid ${borderColor}; padding-left: 12px;">
                     
                     <!-- Content Wrapper (Agent + Task + Timestamp on same side) -->
                     <div class="timeline-content-wrapper">
