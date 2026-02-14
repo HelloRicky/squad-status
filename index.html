@@ -243,7 +243,7 @@
             z-index: 10;
             padding: 0.75rem 2rem;
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-            border: 2px solid rgba(139, 92, 246, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
             border-radius: 2rem;
             backdrop-filter: blur(10px);
             box-shadow: 
@@ -359,7 +359,7 @@
             transform: scale(1.1);
         }
 
-        /* LIVE status - green glow */
+        /* LIVE status - green glow (matches main page "working" status) */
         .timeline-item-container.live .timeline-icon {
             box-shadow: 
                 0 0 0 3px rgba(34, 197, 94, 0.3),
@@ -480,6 +480,59 @@
             padding: 24px;
             display: inline-block;
         }
+
+        /* Custom Scrollbar for Timeline */
+        #timelineContent::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #timelineContent::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+        
+        #timelineContent::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.5), rgba(99, 102, 241, 0.5));
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+        
+        #timelineContent::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.8), rgba(99, 102, 241, 0.8));
+        }
+
+        /* Focus Indicators for Accessibility */
+        button:focus-visible,
+        a:focus-visible {
+            outline: 2px solid rgba(139, 92, 246, 0.8);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            .timeline-panel,
+            .main-content,
+            .timeline-card,
+            .day-node,
+            .timeline-icon,
+            .agent-card {
+                animation: none !important;
+                transition-duration: 0.01ms !important;
+            }
+            .pulse-dot,
+            .breathing-border {
+                animation: none !important;
+            }
+        }
+
+        /* Mobile Full-Screen Timeline */
+        @media (max-width: 768px) {
+            .timeline-panel.open ~ .main-content.shifted {
+                filter: brightness(0.5);
+                pointer-events: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
@@ -500,6 +553,7 @@
                     <button 
                         id="refreshBtn"
                         onclick="manualRefresh()"
+                        aria-label="Refresh agent status"
                         class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 h-10 md:h-12">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -510,6 +564,8 @@
                     <button 
                         id="timelineBtn"
                         onclick="toggleTimeline()"
+                        aria-label="Open activity timeline"
+                        aria-expanded="false"
                         class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 py-2.5 md:px-4 md:py-3 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center gap-2 h-10 md:h-12">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -524,7 +580,7 @@
         <div id="status-content" class="space-y-4">
             <!-- Loading State -->
             <div class="text-center py-16">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-blue-500 mb-4"></div>
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-purple-500 mb-4"></div>
                 <p class="text-slate-400">Loading squad status...</p>
             </div>
         </div>
@@ -532,19 +588,20 @@
 
     <!-- Timeline Panel -->
     <div class="timeline-container">
-        <div id="timelinePanel" class="timeline-panel">
+        <div id="timelinePanel" class="timeline-panel" role="complementary" aria-label="Activity Timeline Panel">
             <div class="flex flex-col h-full">
                 <!-- Timeline Header -->
                 <div class="flex-shrink-0 p-6 pb-8 border-b border-slate-700/30 bg-gradient-to-b from-slate-900/50 to-transparent">
                     <div class="flex items-start justify-between mb-3">
                         <div>
-                            <h2 class="text-3xl font-bold font-serif mb-1 bg-gradient-to-r from-violet-300 via-purple-300 to-indigo-300 bg-clip-text text-transparent">
+                            <h2 class="text-3xl font-bold font-serif mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                                 Activity Timeline
                             </h2>
                             <p class="text-sm text-slate-400 font-sans italic">A chronicle of squad endeavors</p>
                         </div>
                         <button 
                             onclick="toggleTimeline()"
+                            aria-label="Close timeline"
                             class="text-slate-400 hover:text-white transition-all duration-200 p-2 hover:bg-slate-700/50 rounded-lg hover:scale-110 active:scale-95">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -562,7 +619,7 @@
                         
                         <!-- Loading State (will be replaced when timeline opens) -->
                         <div class="text-center py-12">
-                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-indigo-500 mb-4"></div>
+                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-purple-500 mb-4"></div>
                             <p class="text-slate-400 font-serif italic">Loading timeline...</p>
                         </div>
                     </div>
@@ -973,10 +1030,13 @@
             isTimelineOpen = !isTimelineOpen;
             const panel = document.getElementById('timelinePanel');
             const mainContent = document.getElementById('mainContent');
+            const timelineBtn = document.getElementById('timelineBtn');
             
             if (isTimelineOpen) {
                 panel.classList.add('open');
                 mainContent.classList.add('shifted');
+                timelineBtn.setAttribute('aria-expanded', 'true');
+                timelineBtn.setAttribute('aria-label', 'Close activity timeline');
                 // Reset timeline state and load first 10 items immediately
                 timelineOffset = 0;
                 hasMoreActivities = true;
@@ -987,6 +1047,8 @@
             } else {
                 panel.classList.remove('open');
                 mainContent.classList.remove('shifted');
+                timelineBtn.setAttribute('aria-expanded', 'false');
+                timelineBtn.setAttribute('aria-label', 'Open activity timeline');
             }
         }
 
@@ -1117,11 +1179,23 @@
                 container.innerHTML = `
                     <!-- Vertical Timeline Line -->
                     <div class="timeline-line"></div>
-                    <div class="text-center py-12">
-                        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                        </svg>
-                        <p class="text-slate-400 font-serif italic">No activities yet</p>
+                    <div class="text-center py-16 px-6">
+                        <div class="mb-6">
+                            <svg class="w-24 h-24 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold font-serif mb-3 text-slate-300">
+                            No Activities Yet
+                        </h3>
+                        <p class="text-sm text-slate-400 mb-6 max-w-xs mx-auto leading-relaxed">
+                            Agent activities will appear here as they work on tasks. Check back soon!
+                        </p>
+                        <button 
+                            onclick="fetchActivities(true)" 
+                            class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 active:scale-95">
+                            Refresh Timeline
+                        </button>
                     </div>
                 `;
                 return;
@@ -1294,23 +1368,30 @@
                 <div class="timeline-item-container ${side} ${statusClass}" 
                      style="animation: slideInTimeline 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s both">
                     
-                    <!-- Content Wrapper (Task + Timestamp on same side) -->
+                    <!-- Content Wrapper (Agent + Task + Timestamp on same side) -->
                     <div class="timeline-content-wrapper">
+                        <!-- Agent Name -->
+                        <div class="timeline-content">
+                            <div class="font-semibold text-slate-100 text-sm md:text-base font-sans mb-1">
+                                ${escapeHtml(agentName)}
+                            </div>
+                        </div>
+                        
                         <!-- Task Description -->
                         <div class="timeline-content">
-                            <p class="text-sm text-slate-200 leading-relaxed font-serif italic">
+                            <p class="text-sm md:text-base text-slate-200 leading-relaxed font-serif italic line-clamp-3">
                                 ${escapeHtml(activity.task || 'No task description')}
                             </p>
                         </div>
                         
                         <!-- Timestamp Info -->
                         <div class="timeline-metadata">
-                            <div class="flex items-center gap-2 text-xs text-slate-400 font-sans">
+                            <div class="flex items-center gap-2 text-xs text-slate-500 font-sans">
                                 <span>${startedTime}</span>
                                 ${activity.is_live 
-                                    ? `<span class="text-slate-500">•</span><span class="text-green-400 font-semibold">LIVE</span>` 
+                                    ? `<span class="text-slate-600">•</span><span class="text-green-400 font-semibold">LIVE</span>` 
                                     : durationText 
-                                        ? `<span class="text-slate-500">•</span><span>${durationText}</span>`
+                                        ? `<span class="text-slate-600">•</span><span>${durationText}</span>`
                                         : ''
                                 }
                             </div>
