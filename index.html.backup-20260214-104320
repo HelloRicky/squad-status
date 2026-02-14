@@ -533,62 +533,6 @@
                 pointer-events: none;
             }
         }
-    
-        /* Stale agent visual treatment */
-        .agent-card.stale-warning {
-            opacity: 0.85;
-        }
-        
-        .agent-card.stale-critical {
-            opacity: 0.6;
-        }
-        
-        .agent-card.stale-warning:hover,
-        .agent-card.stale-critical:hover {
-            opacity: 1;
-        }
-        
-        .stale-timestamp {
-            color: #F59E0B !important;
-        }
-        
-        .stale-timestamp.critical {
-            color: #EF4444 !important;
-        }
-        
-        /* Status chip active state */
-        .status-chip.active {
-            background: rgba(139, 92, 246, 0.3) !important;
-            border-color: rgba(139, 92, 246, 0.6) !important;
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-        }
-        
-        /* Card click cursor */
-        .agent-card {
-            cursor: pointer;
-        }
-        
-        .agent-card::after {
-            content: '→';
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            color: rgba(139, 92, 246, 0.6);
-            font-size: 1.25rem;
-        }
-        
-        .agent-card:hover::after {
-            opacity: 1;
-        }
-        
-        /* Status indicator accessibility - larger size */
-        .status-dot {
-            width: 12px !important;
-            height: 12px !important;
-        }
-
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
@@ -633,23 +577,6 @@
         </div>
 
         <!-- Status Content -->
-        
-        <!-- Summary Bar -->
-        <div id="summary-bar" class="bg-slate-800/40 backdrop-blur-sm rounded-xl p-4 mb-6 border border-slate-700/30">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-3">
-                    <h2 class="text-sm font-semibold text-slate-300 hidden sm:block">Squad Overview:</h2>
-                    <!-- Status chips will be inserted here -->
-                    <div id="status-chips" class="flex flex-wrap items-center gap-2">
-                        <div class="text-slate-500 text-sm">Loading...</div>
-                    </div>
-                </div>
-                <div id="filter-indicator" class="text-xs text-slate-400 hidden">
-                    <!-- Filter active indicator -->
-                </div>
-            </div>
-        </div>
-
         <div id="status-content" class="space-y-4">
             <!-- Loading State -->
             <div class="text-center py-16">
@@ -781,109 +708,6 @@
             'Shakespeare': 'Content & Growth'
         };
 
-
-        // Filter state
-        let currentFilter = 'all'; // 'all', 'working', 'idle', 'error'
-        let allAgentsData = [];
-
-        // Staleness thresholds (in minutes)
-        const STALE_WARNING_THRESHOLD = 15;
-        const STALE_CRITICAL_THRESHOLD = 120; // 2 hours
-
-        // Determine staleness level
-        function getStaleness(lastActiveAt) {
-            if (!lastActiveAt) return 'critical';
-            const now = new Date();
-            const lastActive = new Date(lastActiveAt);
-            const minutesAgo = (now - lastActive) / (1000 * 60);
-            
-            if (minutesAgo > STALE_CRITICAL_THRESHOLD) return 'critical';
-            if (minutesAgo > STALE_WARNING_THRESHOLD) return 'warning';
-            return 'fresh';
-        }
-
-        // Render summary bar with status counts
-        function renderSummaryBar(agents) {
-            const counts = {
-                working: 0,
-                idle: 0,
-                error: 0
-            };
-
-            agents.forEach(agent => {
-                if (counts.hasOwnProperty(agent.status)) {
-                    counts[agent.status]++;
-                }
-            });
-
-            const chipsHTML = `
-                <button onclick="filterAgents('all')" class="status-chip ${currentFilter === 'all' ? 'active' : ''} bg-slate-700/50 hover:bg-slate-700 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-slate-600 hover:border-slate-500 flex items-center gap-1.5">
-                    <span>All</span>
-                    <span class="font-mono">${agents.length}</span>
-                </button>
-                <button onclick="filterAgents('working')" class="status-chip ${currentFilter === 'working' ? 'active' : ''} hover:bg-green-500/20 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-green-500/30 hover:border-green-500/50 text-green-400 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span>Working</span>
-                    <span class="font-mono">${counts.working}</span>
-                </button>
-                <button onclick="filterAgents('idle')" class="status-chip ${currentFilter === 'idle' ? 'active' : ''} hover:bg-yellow-500/20 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-yellow-500/30 hover:border-yellow-500/50 text-yellow-400 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    <span>Idle</span>
-                    <span class="font-mono">${counts.idle}</span>
-                </button>
-                <button onclick="filterAgents('error')" class="status-chip ${currentFilter === 'error' ? 'active' : ''} hover:bg-red-500/20 px-3 py-1.5 rounded-full text-xs font-medium transition-all border border-red-500/30 hover:border-red-500/50 text-red-400 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                    <span>Error</span>
-                    <span class="font-mono">${counts.error}</span>
-                </button>
-            `;
-
-            document.getElementById('status-chips').innerHTML = chipsHTML;
-
-            // Update filter indicator
-            const filterIndicator = document.getElementById('filter-indicator');
-            if (currentFilter !== 'all') {
-                filterIndicator.classList.remove('hidden');
-                filterIndicator.innerHTML = `Filtering by: <strong>${currentFilter}</strong> <button onclick="filterAgents('all')" class="ml-1 text-purple-400 hover:text-purple-300">×</button>`;
-            } else {
-                filterIndicator.classList.add('hidden');
-            }
-        }
-
-        // Filter agents by status
-        function filterAgents(status) {
-            currentFilter = status;
-            renderAgents(allAgentsData);
-        }
-
-        // Get last completed task from activities (mock for now)
-        async function getLastCompletedTask(agentName) {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/agent_activities?agent_name=eq.${encodeURIComponent(agentName)}&status=eq.completed&order=completed_at.desc&limit=1`, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                    }
-                });
-                if (response.ok) {
-                    const activities = await response.json();
-                    if (activities.length > 0) {
-                        return activities[0].task_description;
-                    }
-                }
-            } catch (e) {
-                console.error('Error fetching last completed task:', e);
-            }
-            return null;
-        }
-
-
-        // Open agent detail modal/panel
-        function openAgentDetail(agentName) {
-            console.log('Opening details for:', agentName);
-            alert(`Agent details for ${agentName}\n\n(Detail panel coming soon: full task history, performance metrics, configuration options)`);
-        }
-
         async function fetchAgentStatus() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/agent_status?order=agent_id.asc`, {
@@ -908,20 +732,9 @@
 
         function renderAgents(agents) {
             const content = document.getElementById('status-content');
-            
-            // Store all agents data
-            allAgentsData = agents;
-            
-            // Render summary bar
-            renderSummaryBar(agents);
 
             // Filter out agents with null or missing agent_name
-            let validAgents = agents.filter(a => a.agent_name != null);
-            
-            // Apply status filter
-            if (currentFilter !== 'all') {
-                validAgents = validAgents.filter(a => a.status === currentFilter);
-            }
+            const validAgents = agents.filter(a => a.agent_name != null);
 
             if (validAgents.length === 0) {
                 content.innerHTML = `
@@ -960,41 +773,10 @@
                 color: 'from-slate-400 to-slate-500'
             };
             const statusConfig = getStatusConfig(agent.status);
-            const staleness = getStaleness(agent.last_active_at);
-            const stalenessClass = staleness === 'critical' ? 'stale-critical' : staleness === 'warning' ? 'stale-warning' : '';
-            const timestampClass = staleness === 'critical' ? 'stale-timestamp critical' : staleness === 'warning' ? 'stale-timestamp' : '';
-            
-            // Determine what to show for current task
-            let taskDisplay = '';
-            if (agent.current_task) {
-                taskDisplay = `
-                    <svg class="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(agent.current_task)}</p>
-                `;
-            } else {
-                // Show last completed task placeholder (will be populated async)
-                taskDisplay = `
-                    <svg class="w-5 h-5 text-slate-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="text-sm text-slate-500 italic">Last completed: <span class="last-task-${agent.agent_id}">Loading...</span></p>
-                `;
-                // Fetch last completed task asynchronously
-                getLastCompletedTask(agent.agent_name).then(task => {
-                    const el = document.querySelector('.last-task-' + agent.agent_id);
-                    if (el) {
-                        el.textContent = task || 'No tasks yet';
-                        el.classList.toggle('italic', !task);
-                    }
-                });
-            }
             
             return `
-                <div class="leader-card agent-card ${stalenessClass} bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 md:p-6 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-0.5 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
-                     style="animation-delay: ${index * 0.05}s"
-                     onclick="openAgentDetail('${escapeHtml(agent.agent_name)}')">
+                <div class="leader-card agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 md:p-6 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-0.5 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
+                     style="animation-delay: ${index * 0.05}s">
                     <!-- Horizontal Layout -->
                     <div class="flex items-center gap-4 md:gap-5">
                         <!-- Avatar -->
@@ -1003,11 +785,11 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-yellow-500 rounded-full border-2 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
@@ -1016,7 +798,7 @@
                             <div class="flex items-center gap-3 mb-1.5">
                                 <h3 class="text-xl md:text-2xl font-bold text-white">${escapeHtml(agent.agent_name)}</h3>
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.badge}">
-                                    <span class="status-dot ${statusConfig.dot}"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full ${statusConfig.dot}"></span>
                                     ${statusConfig.label}
                                 </span>
                             </div>
@@ -1024,33 +806,45 @@
                             
                             <!-- Current Task (mobile - shown below name/role) -->
                             <div class="md:hidden bg-slate-900/50 rounded-lg px-3 py-2.5 border border-slate-700/30 mb-2">
-                                <div class="flex items-start gap-2">
-                                    ${taskDisplay}
-                                </div>
+                                ${agent.current_task ? `
+                                    <div class="flex items-start gap-2">
+                                        <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                        <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(agent.current_task)}</p>
+                                    </div>
+                                ` : `
+                                    <p class="text-sm text-slate-500 italic">No active task</p>
+                                `}
                             </div>
                             
                             <!-- Last Active (mobile - shown below current task) -->
-                            <div class="md:hidden flex items-center gap-1.5 text-xs ${timestampClass}">
+                            <div class="md:hidden flex items-center gap-1.5 text-xs text-slate-500">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <span>Last active: ${formatDate(agent.last_active_at)}</span>
-                                ${staleness === 'critical' ? '<span class="ml-1">⚠</span>' : ''}
                             </div>
                         </div>
 
                         <!-- Current Task (desktop - shown on right side) -->
                         <div class="hidden md:flex flex-1 min-w-0 items-start gap-3 bg-slate-900/50 rounded-lg px-4 py-3.5 border border-slate-700/30">
-                            ${taskDisplay}
+                            ${agent.current_task ? `
+                                <svg class="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(agent.current_task)}</p>
+                            ` : `
+                                <p class="text-sm text-slate-500 italic">No active task</p>
+                            `}
                         </div>
 
                         <!-- Last Active (desktop) -->
-                        <div class="hidden md:flex items-center gap-2 text-sm ${timestampClass} flex-shrink-0">
+                        <div class="hidden md:flex items-center gap-2 text-sm text-slate-500 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span>Last active: ${formatDate(agent.last_active_at)}</span>
-                            ${staleness === 'critical' ? '<span class="ml-1">⚠</span>' : ''}
                         </div>
                     </div>
                 </div>
@@ -1063,38 +857,10 @@
                 color: 'from-slate-400 to-slate-500'
             };
             const statusConfig = getStatusConfig(agent.status);
-            const staleness = getStaleness(agent.last_active_at);
-            const stalenessClass = staleness === 'critical' ? 'stale-critical' : staleness === 'warning' ? 'stale-warning' : '';
-            const timestampClass = staleness === 'critical' ? 'stale-timestamp critical' : staleness === 'warning' ? 'stale-timestamp' : '';
-            
-            // Determine what to show for current task
-            let taskDisplay = '';
-            if (agent.current_task) {
-                taskDisplay = `
-                    <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    <p class="text-xs text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(agent.current_task)}</p>
-                `;
-            } else {
-                taskDisplay = `
-                    <svg class="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="text-xs text-slate-500 italic">Last: <span class="last-task-${agent.agent_id}">...</span></p>
-                `;
-                getLastCompletedTask(agent.agent_name).then(task => {
-                    const el = document.querySelector('.last-task-' + agent.agent_id);
-                    if (el) {
-                        el.textContent = task || 'No tasks yet';
-                    }
-                });
-            }
             
             return `
-                <div class="team-member agent-card ${stalenessClass} bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 lg:p-5 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-1 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
-                     style="animation-delay: ${index * 0.05}s"
-                     onclick="openAgentDetail('${escapeHtml(agent.agent_name)}')">
+                <div class="team-member agent-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 lg:p-5 border ${statusConfig.borderClass} ${statusConfig.hoverBorderClass} transition-all duration-200 hover:shadow-xl hover:shadow-${statusConfig.shadowColor}/10 hover:-translate-y-1 ${agent.status === 'working' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20 breathing-border' : agent.status === 'error' ? 'shadow-lg shadow-' + statusConfig.shadowColor + '-500/20' : ''}"
+                     style="animation-delay: ${index * 0.05}s">
                     <!-- Agent Header -->
                     <div class="flex flex-col items-center text-center mb-3">
                         <div class="relative mb-3">
@@ -1102,36 +868,44 @@
                                 ${avatar.svg || avatar.emoji}
                             </div>
                             ${agent.status === 'working' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             ` : agent.status === 'idle' ? `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-yellow-500 rounded-full border-2 border-slate-800"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-slate-800"></div>
                             ` : `
-                                <div class="absolute -bottom-1 -right-1 status-dot bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-slate-800 pulse-dot"></div>
                             `}
                         </div>
                         
                         <h3 class="text-lg lg:text-xl font-bold text-white mb-1">${escapeHtml(agent.agent_name)}</h3>
                         <p class="text-xs text-slate-400 mb-2">${agentRoles[agent.agent_name] || ''}</p>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.badge}">
-                            <span class="status-dot ${statusConfig.dot}"></span>
+                            <span class="w-1.5 h-1.5 rounded-full ${statusConfig.dot}"></span>
                             ${statusConfig.label}
                         </span>
                     </div>
 
                     <!-- Current Task -->
-                    <div class="bg-slate-900/50 rounded-lg p-3 mb-3 border border-slate-700/30">
-                        <div class="flex items-start gap-2">
-                            ${taskDisplay}
+                    ${agent.current_task ? `
+                        <div class="bg-slate-900/50 rounded-lg p-3 mb-3 border border-slate-700/30">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="text-xs text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(agent.current_task)}</p>
+                            </div>
                         </div>
-                    </div>
+                    ` : `
+                        <div class="bg-slate-900/30 rounded-lg p-3 mb-3 border border-slate-700/20">
+                            <p class="text-xs text-slate-500 italic text-center">No active task</p>
+                        </div>
+                    `}
 
                     <!-- Last Active -->
-                    <div class="flex items-center justify-center gap-1.5 text-xs ${timestampClass}">
+                    <div class="flex items-center justify-center gap-1.5 text-xs text-slate-500">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span>Last active: ${formatDate(agent.last_active_at)}</span>
-                        ${staleness === 'critical' ? '<span class="ml-1">⚠</span>' : ''}
                     </div>
                 </div>
             `;
