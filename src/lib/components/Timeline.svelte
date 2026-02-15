@@ -140,6 +140,8 @@
 </script>
 
 {#if open}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="timeline-backdrop" onclick={onClose}></div>
 	<div class="timeline-panel">
 		<!-- Timeline Header -->
 		<div class="timeline-header">
@@ -240,6 +242,22 @@
 {/if}
 
 <style>
+	.timeline-backdrop {
+		display: none;
+	}
+
+	@media (max-width: 900px) {
+		.timeline-backdrop {
+			display: block;
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.5);
+			backdrop-filter: blur(4px);
+			-webkit-backdrop-filter: blur(4px);
+			z-index: 99;
+		}
+	}
+
 	.timeline-panel {
 		background: var(--bg-secondary);
 		border-left: 1px solid var(--border-default);
