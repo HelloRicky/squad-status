@@ -6,22 +6,28 @@
 	interface Props {
 		open: boolean;
 		onClose: () => void;
+		refreshKey: number;
 	}
 
-	let { open, onClose }: Props = $props();
+	let { open, onClose, refreshKey }: Props = $props();
 
 	let activities: Activity[] = $state([]);
 	let loading = $state(false);
 	let hasMore = $state(true);
 	let offset = $state(0);
 	let filter = $state('all');
-	let initialLoaded = $state(false);
+
+	let displayActivities = $derived.by(() => {
+		const live = activities.filter(a => !a.ended_at);
+		const completed = activities.filter(a => !!a.ended_at);
+		return [...live, ...completed];
+	});
 
 	let dateBadgeIndices = $derived.by(() => {
 		const seen = new Set<string>();
 		const indices = new Set<number>();
-		for (let i = 0; i < activities.length; i++) {
-			const dateKey = new Date(activities[i].started_at).toDateString();
+		for (let i = 0; i < displayActivities.length; i++) {
+			const dateKey = new Date(displayActivities[i].started_at).toDateString();
 			if (!seen.has(dateKey)) {
 				seen.add(dateKey);
 				indices.add(i);
@@ -32,12 +38,9 @@
 
 	$effect(() => {
 		if (open) {
-			if (!initialLoaded) {
-				initialLoaded = true;
-				loadTimeline();
-			}
-		} else {
-			initialLoaded = false;
+			// Track refreshKey so we reload when it changes
+			refreshKey;
+			loadTimeline(false);
 		}
 	});
 
@@ -155,7 +158,7 @@
 					<p>No activities found</p>
 				</div>
 			{:else}
-				{#each activities as activity, i (activity.id)}
+				{#each displayActivities as activity, i (activity.id)}
 					{#if dateBadgeIndices.has(i)}
 						<div class="timeline-day-label">
 							{formatDate(activity.started_at)}
@@ -178,7 +181,9 @@
 						<div class="timeline-item-body">
 							<div class="timeline-item-header">
 								<span class="timeline-item-name">{activity.agent_name}</span>
-								<span class="timeline-item-time">{formatTime(activity.started_at)}</span>
+								<span class="timeline-item-time">
+									{formatTime(activity.started_at)}{#if activity.ended_at} · {calculateDuration(activity.started_at, activity.ended_at)}{/if}
+								</span>
 							</div>
 							<div class="timeline-item-task">
 								{activity.task || 'No description'}
@@ -186,14 +191,6 @@
 									<span class="live-dot"></span>
 								{/if}
 							</div>
-							{#if activity.ended_at}
-								<div class="timeline-item-completed">
-									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M20 6 9 17l-5-5"/>
-									</svg>
-									Completed · {calculateDuration(activity.started_at, activity.ended_at)}
-								</div>
-							{/if}
 						</div>
 					</div>
 				{/each}
@@ -408,21 +405,6 @@
 		margin-left: 4px;
 		animation: blink 1.5s ease infinite;
 		vertical-align: middle;
-	}
-
-	.timeline-item-completed {
-		display: inline-flex;
-		align-items: center;
-		gap: 3px;
-		font-size: 10px;
-		color: var(--accent-green);
-		font-family: var(--font-mono);
-		margin-top: 3px;
-	}
-
-	.timeline-item-completed svg {
-		width: 10px;
-		height: 10px;
 	}
 
 	/* ── Loading & Empty States ── */

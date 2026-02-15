@@ -3,6 +3,7 @@ export interface Agent {
 	agent_name: string;
 	status: 'idle' | 'working' | 'error';
 	current_task: string | null;
+	last_task?: string | null;
 	last_active_at: string;
 	created_at: string;
 	updated_at: string;

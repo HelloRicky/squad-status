@@ -15,7 +15,11 @@ export function formatTimeAgo(dateString: string): string {
 export function formatDate(dateString: string): string {
 	const date = new Date(dateString);
 	const now = new Date();
-	const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+	// Compare calendar dates, not elapsed time
+	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	const diffDays = Math.round((today.getTime() - dateDay.getTime()) / (1000 * 60 * 60 * 24));
 
 	if (diffDays === 0) return 'Today';
 	if (diffDays === 1) return 'Yesterday';

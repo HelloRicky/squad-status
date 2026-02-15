@@ -40,6 +40,8 @@
 			<div class="coordinator-meta">
 				{#if agent.current_task}
 					<span class="task-label">{agent.current_task}</span>
+				{:else if agent.last_task}
+					<span class="task-label task-label-idle">Last: {agent.last_task}</span>
 				{/if}
 				<span class="meta-item">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -72,6 +74,8 @@
 			<div class="agent-task" class:has-task={agent.current_task}>
 				{#if agent.current_task}
 					{agent.current_task}
+				{:else if agent.last_task}
+					<span class="task-idle-label">Last: {agent.last_task}</span>
 				{:else}
 					<span class="task-idle-label">No active task</span>
 				{/if}
@@ -101,7 +105,7 @@
 			</div>
 			<div class="compact-info">
 				<div class="compact-name">{agent.agent_name}</div>
-				<div class="compact-task">{agent.current_task || 'No active task'}</div>
+				<div class="compact-task">{agent.current_task || (agent.last_task ? `Last: ${agent.last_task}` : 'No active task')}</div>
 			</div>
 			<div class="compact-time">{formatTimeAgo(agent.last_active_at)}</div>
 		</div>
@@ -126,7 +130,7 @@
 				<span class="status-dot {agent.status}">●</span>
 				{agent.status}
 			</div>
-			<div class="table-task">{agent.current_task || 'No active task'}</div>
+			<div class="table-task">{agent.current_task || (agent.last_task ? `Last: ${agent.last_task}` : 'No active task')}</div>
 			<div class="table-time">{formatTimeAgo(agent.last_active_at)}</div>
 		</div>
 	</div>
@@ -249,6 +253,11 @@
 		background: var(--bg-elevated);
 		padding: 4px 10px;
 		border-radius: var(--radius-sm);
+	}
+
+	.task-label-idle {
+		color: var(--text-tertiary);
+		font-style: italic;
 	}
 
 	/* ── Status Ring ── */

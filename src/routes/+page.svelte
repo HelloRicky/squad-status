@@ -15,6 +15,7 @@
 	let statusFilter: StatusFilter = $state('all');
 	let timelineOpen = $state(false);
 	let refreshCountdown = $state(30);
+	let refreshKey = $state(0);
 
 	let refreshInterval: ReturnType<typeof setInterval>;
 	let countdownInterval: ReturnType<typeof setInterval>;
@@ -40,6 +41,7 @@
 			const response = await fetch('/api/agents');
 			if (response.ok) {
 				agents = await response.json();
+				refreshKey++;
 			}
 		} catch (error) {
 			console.error('Failed to fetch agents:', error);
@@ -133,7 +135,7 @@
 		{/if}
 	</div>
 
-	<Timeline open={timelineOpen} onClose={toggleTimeline} />
+	<Timeline open={timelineOpen} onClose={toggleTimeline} {refreshKey} />
 </div>
 
 <style>

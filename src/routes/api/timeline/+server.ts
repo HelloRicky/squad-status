@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	const agentName = url.searchParams.get('agent_name');
 
 	try {
-		let endpoint = `/rest/v1/agent_status_history?select=*&order=started_at.desc&offset=${offset}&limit=${limit}`;
+		let endpoint = `/rest/v1/agent_status_history?select=*&order=started_at.desc&offset=${offset}&limit=${limit}&status=neq.idle`;
 
 		if (agentName && agentName !== 'all') {
 			endpoint += `&agent_id=ilike.${encodeURIComponent(agentName)}`;
