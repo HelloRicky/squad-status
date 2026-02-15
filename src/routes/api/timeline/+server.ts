@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		let endpoint = `/rest/v1/agent_status_history?select=*&order=started_at.desc&offset=${offset}&limit=${limit}`;
 
 		if (agentName && agentName !== 'all') {
-			endpoint += `&agent_name=eq.${encodeURIComponent(agentName)}`;
+			endpoint += `&agent_id=ilike.${encodeURIComponent(agentName)}`;
 		}
 
 		const response = await supabaseFetch(endpoint, {
@@ -20,7 +20,11 @@ export const GET: RequestHandler = async ({ url }) => {
 			}
 		});
 
-		const activities = await response.json();
+		const raw = await response.json();
+		const activities = raw.map((a: Record<string, unknown>) => ({
+			...a,
+			agent_name: a.agent_name ?? a.agent_id
+		}));
 		const contentRange = response.headers.get('content-range');
 		const hasMore = contentRange ? offset + limit < parseInt(contentRange.split('/')[1]) : false;
 

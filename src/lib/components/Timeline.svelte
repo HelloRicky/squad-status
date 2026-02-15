@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { Activity } from '$lib/types';
-	import { agentAvatars, agentTimelineColors } from '$lib/types';
+	import { agentAvatars, agentTimelineColors, resolveAgentName } from '$lib/types';
 	import { formatDate, formatTime } from '$lib/utils';
 
 	interface Props {
@@ -16,17 +15,29 @@
 	let hasMore = $state(true);
 	let offset = $state(0);
 	let filter = $state('all');
-	let displayedDates = $state(new Set<string>());
+	let initialLoaded = $state(false);
 
-	onMount(() => {
-		if (open) {
-			loadTimeline();
+	let dateBadgeIndices = $derived.by(() => {
+		const seen = new Set<string>();
+		const indices = new Set<number>();
+		for (let i = 0; i < activities.length; i++) {
+			const dateKey = new Date(activities[i].started_at).toDateString();
+			if (!seen.has(dateKey)) {
+				seen.add(dateKey);
+				indices.add(i);
+			}
 		}
+		return indices;
 	});
 
 	$effect(() => {
-		if (open && activities.length === 0) {
-			loadTimeline();
+		if (open) {
+			if (!initialLoaded) {
+				initialLoaded = true;
+				loadTimeline();
+			}
+		} else {
+			initialLoaded = false;
 		}
 	});
 
@@ -45,7 +56,6 @@
 				} else {
 					activities = data.activities;
 					offset = data.activities.length;
-					displayedDates = new Set();
 				}
 
 				hasMore = data.hasMore;
@@ -60,7 +70,6 @@
 	function handleFilterChange(newFilter: string) {
 		filter = newFilter;
 		offset = 0;
-		displayedDates = new Set();
 		loadTimeline(false);
 	}
 
@@ -71,15 +80,6 @@
 		if (scrolledToBottom && hasMore && !loading) {
 			loadTimeline(true);
 		}
-	}
-
-	function shouldShowDateBadge(activity: Activity): boolean {
-		const dateKey = new Date(activity.started_at).toDateString();
-		if (displayedDates.has(dateKey)) {
-			return false;
-		}
-		displayedDates.add(dateKey);
-		return true;
 	}
 
 	function calculateDuration(startedAt: string, endedAt: string): string {
@@ -97,12 +97,13 @@
 	}
 
 	function getAgentColor(agentName: string): string {
-		return agentTimelineColors[agentName] || 'var(--text-tertiary)';
+		const resolved = resolveAgentName(agentName);
+		return agentTimelineColors[resolved] || 'var(--text-tertiary)';
 	}
 
 	let filterButtons = [
 		{ id: 'all', label: 'All' },
-		{ id: 'Ducki (Main)', label: 'Ducki' },
+		{ id: 'Ducki', label: 'Ducki' },
 		{ id: 'Pixel', label: 'Pixel' },
 		{ id: 'Linus', label: 'Linus' },
 		{ id: 'Tesla', label: 'Tesla' },
@@ -154,8 +155,8 @@
 					<p>No activities found</p>
 				</div>
 			{:else}
-				{#each activities as activity (activity.id)}
-					{#if shouldShowDateBadge(activity)}
+				{#each activities as activity, i (activity.id)}
+					{#if dateBadgeIndices.has(i)}
 						<div class="timeline-day-label">
 							{formatDate(activity.started_at)}
 						</div>
@@ -164,11 +165,11 @@
 					<div class="timeline-item">
 						<div class="agent-color-bar" style="background: {getAgentColor(activity.agent_name)}"></div>
 
-						<div class="timeline-item-avatar" style="background: {agentAvatars[activity.agent_name]?.color || 'linear-gradient(135deg, #6b7280, #9ca3af)'}">
-							{#if agentAvatars[activity.agent_name]?.svg}
-								{@html agentAvatars[activity.agent_name].svg}
-							{:else if agentAvatars[activity.agent_name]?.emoji}
-								{agentAvatars[activity.agent_name].emoji}
+						<div class="timeline-item-avatar" style="background: {agentAvatars[resolveAgentName(activity.agent_name)]?.color || 'linear-gradient(135deg, #6b7280, #9ca3af)'}">
+							{#if agentAvatars[resolveAgentName(activity.agent_name)]?.svg}
+								{@html agentAvatars[resolveAgentName(activity.agent_name)].svg}
+							{:else if agentAvatars[resolveAgentName(activity.agent_name)]?.emoji}
+								{agentAvatars[resolveAgentName(activity.agent_name)].emoji}
 							{:else}
 								👤
 							{/if}
