@@ -524,4 +524,25 @@
 		font-family: var(--font-mono);
 		white-space: nowrap;
 	}
+
+	@media (max-width: 640px) {
+		.coordinator-card {
+			padding: 16px;
+		}
+
+		.coordinator-row {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 12px;
+		}
+
+		.coordinator-name-block h2 {
+			flex-wrap: wrap;
+		}
+
+		.coordinator-meta {
+			width: 100%;
+			gap: 12px;
+		}
+	}
 </style>

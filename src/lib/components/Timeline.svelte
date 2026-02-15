@@ -23,11 +23,36 @@
 		return [...live, ...completed];
 	});
 
+	interface DisplayEntry {
+		activity: Activity;       // the "representative" (most recent in the group)
+		collapsedCount: number;   // 1 = normal, >1 = collapsed
+	}
+
+	let groupedActivities = $derived.by(() => {
+		const result: DisplayEntry[] = [];
+		for (const activity of displayActivities) {
+			const prev = result[result.length - 1];
+			const canCollapse =
+				prev &&
+				prev.activity.ended_at && activity.ended_at &&
+				resolveAgentName(prev.activity.agent_name) === resolveAgentName(activity.agent_name) &&
+				prev.activity.task === activity.task &&
+				new Date(prev.activity.started_at).toDateString() === new Date(activity.started_at).toDateString();
+
+			if (canCollapse) {
+				prev.collapsedCount++;
+			} else {
+				result.push({ activity, collapsedCount: 1 });
+			}
+		}
+		return result;
+	});
+
 	let dateBadgeIndices = $derived.by(() => {
 		const seen = new Set<string>();
 		const indices = new Set<number>();
-		for (let i = 0; i < displayActivities.length; i++) {
-			const dateKey = new Date(displayActivities[i].started_at).toDateString();
+		for (let i = 0; i < groupedActivities.length; i++) {
+			const dateKey = new Date(groupedActivities[i].activity.started_at).toDateString();
 			if (!seen.has(dateKey)) {
 				seen.add(dateKey);
 				indices.add(i);
@@ -158,7 +183,7 @@
 					<p>No activities found</p>
 				</div>
 			{:else}
-				{#each displayActivities as activity, i (activity.id)}
+				{#each groupedActivities as { activity, collapsedCount }, i (activity.id)}
 					{#if dateBadgeIndices.has(i)}
 						<div class="timeline-day-label">
 							{formatDate(activity.started_at)}
@@ -187,6 +212,9 @@
 							</div>
 							<div class="timeline-item-task">
 								{activity.task || 'No description'}
+								{#if collapsedCount > 1}
+									<span class="collapse-count">×{collapsedCount}</span>
+								{/if}
 								{#if !activity.ended_at}
 									<span class="live-dot"></span>
 								{/if}
@@ -394,6 +422,16 @@
 		font-size: 12px;
 		color: var(--text-secondary);
 		line-height: 1.4;
+	}
+
+	.collapse-count {
+		font-size: 10px;
+		color: var(--text-tertiary);
+		background: var(--bg-elevated);
+		padding: 1px 5px;
+		border-radius: 8px;
+		margin-left: 6px;
+		font-family: var(--font-mono);
 	}
 
 	.live-dot {

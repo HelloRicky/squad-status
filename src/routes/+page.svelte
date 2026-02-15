@@ -108,7 +108,8 @@
 	.app {
 		display: grid;
 		grid-template-columns: 1fr 380px;
-		min-height: 100vh;
+		height: 100vh;
+		height: 100dvh;  /* overrides on supporting browsers */
 		position: relative;
 		z-index: 1;
 	}
@@ -120,6 +121,8 @@
 	.main {
 		padding: 32px 40px;
 		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.loading-container {

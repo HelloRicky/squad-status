@@ -103,6 +103,7 @@
 	.org-chart {
 		display: flex;
 		flex-direction: column;
+		flex: 1;  /* stretch to fill .main */
 	}
 
 	.leader-wrapper {
@@ -135,12 +136,15 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 		gap: 10px;
+		flex: 1;              /* fill remaining org-chart space */
+		align-content: start; /* keep cards pinned to top, not stretched */
 	}
 
 	.agents-list {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
+		flex: 1;
 	}
 
 	@media (max-width: 900px) {
