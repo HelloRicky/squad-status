@@ -76,11 +76,3 @@ export const agentRoles: Record<string, string> = {
 	Tesla: 'QA & Research',
 	Shakespeare: 'Content & Growth'
 };
-
-export const agentTimelineColors: Record<string, string> = {
-	'Ducki (Main)': '#FFD700',
-	Pixel: '#A855F7',
-	Linus: '#06B6D4',
-	Tesla: '#10B981',
-	Shakespeare: '#F59E0B'
-};

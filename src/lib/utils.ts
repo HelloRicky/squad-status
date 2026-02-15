@@ -43,14 +43,3 @@ export function getStaleness(lastActiveAt: string | null): 'fresh' | 'warning' |
 	if (minutesAgo > STALE_WARNING_THRESHOLD) return 'warning';
 	return 'fresh';
 }
-
-export function escapeHtml(text: string): string {
-	const map: Record<string, string> = {
-		'&': '&amp;',
-		'<': '&lt;',
-		'>': '&gt;',
-		'"': '&quot;',
-		"'": '&#039;'
-	};
-	return text.replace(/[&<>"']/g, (m) => map[m]);
-}
