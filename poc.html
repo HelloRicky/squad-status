@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squad Status — Real-time Agent Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0c0e14;
+    --bg-secondary: #12151e;
+    --bg-card: #161a26;
+    --bg-card-hover: #1a1f2e;
+    --bg-elevated: #1e2333;
+    --border-default: #1e2333;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-active: #3b82f6;
+
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b90a0;
+    --text-tertiary: #5a5f72;
+    --text-inverse: #0c0e14;
+
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59,130,246,0.15);
+    --accent-green: #22c55e;
+    --accent-green-dim: rgba(34,197,94,0.12);
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: rgba(245,158,11,0.12);
+    --accent-red: #ef4444;
+    --accent-red-dim: rgba(239,68,68,0.12);
+    --accent-purple: #a78bfa;
+    --accent-purple-dim: rgba(167,139,250,0.12);
+    --accent-pink: #ec4899;
+    --accent-pink-dim: rgba(236,72,153,0.12);
+    --accent-cyan: #06b6d4;
+    --accent-cyan-dim: rgba(6,182,212,0.12);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.03);
+    --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Subtle background texture ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.04), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(167,139,250,0.03), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .app.timeline-closed {
+    grid-template-columns: 1fr;
+  }
+
+  .app.timeline-closed .timeline-panel { display: none; }
+
+  /* ── Main Content ── */
+  .main {
+    padding: 32px 40px;
+    overflow-y: auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .header-left h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+
+  .header-left p {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border-default);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  .btn-primary {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .btn svg { width: 14px; height: 14px; }
+
+  .refresh-badge {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Summary Bar ── */
+  .summary-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+
+  .summary-chip .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chip-working {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+  }
+  .chip-working .dot { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+
+  .chip-idle {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+  }
+  .chip-idle .dot { background: var(--accent-amber); }
+
+  .chip-error {
+    background: var(--accent-red-dim);
+    color: var(--accent-red);
+  }
+  .chip-error .dot { background: var(--accent-red); }
+
+  /* ── Coordinator Card ── */
+  .coordinator-card {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-blue);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 8px;
+    box-shadow: 0 0 20px rgba(59,130,246,0.08), var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .coordinator-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-blue));
+    background-size: 200% 100%;
+    animation: shimmer 3s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .coordinator-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .coordinator-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .avatar-coordinator {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+  }
+
+  .avatar-linus { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+  .avatar-pixel { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+  .avatar-shakespeare { background: linear-gradient(135deg, #f59e0b, #eab308); }
+  .avatar-tesla { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+
+  .avatar .status-ring {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-ring.working { background: var(--accent-green); }
+  .status-ring.idle { background: var(--accent-amber); }
+  .status-ring.error { background: var(--accent-red); }
+
+  .status-ring.working::after {
+    content: '';
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    position: absolute;
+    animation: pulse-ring 2s ease infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  .coordinator-name-block h2 {
+    font-size: 17px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .coordinator-name-block .role {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-working {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+  }
+
+  .badge-idle {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+  }
+
+  .coordinator-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .meta-item svg { width: 13px; height: 13px; opacity: 0.5; }
+
+  .task-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Connector Line ── */
+  .connector {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    height: 24px;
+  }
+
+  .connector::before {
+    content: '';
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent-blue), var(--border-default));
+  }
+
+  /* ── Agent Grid ── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .agent-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    animation: fadeInUp 0.4s ease backwards;
+  }
+
+  .agent-card:nth-child(1) { animation-delay: 0.05s; }
+  .agent-card:nth-child(2) { animation-delay: 0.1s; }
+  .agent-card:nth-child(3) { animation-delay: 0.15s; }
+  .agent-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .agent-card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .agent-card.stale {
+    opacity: 0.55;
+  }
+
+  .agent-card.stale:hover {
+    opacity: 0.85;
+  }
+
+  .agent-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .agent-card .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+
+  .agent-card .avatar .status-ring {
+    width: 12px;
+    height: 12px;
+    bottom: -2px;
+    right: -2px;
+  }
+
+  .agent-name-block h3 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .agent-name-block .role {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+  }
+
+  .agent-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .agent-task {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--border-default);
+    line-height: 1.5;
+  }
+
+  .agent-task.has-task {
+    border-left-color: var(--accent-green);
+    color: var(--text-primary);
+  }
+
+  .agent-task .task-idle-label {
+    color: var(--text-tertiary);
+    font-style: italic;
+  }
+
+  .agent-task .last-task-label {
+    color: var(--text-tertiary);
+    font-size: 10px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .agent-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .last-active {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .last-active svg { width: 11px; height: 11px; opacity: 0.4; }
+
+  .last-active.stale-warning {
+    color: var(--accent-amber);
+  }
+
+  /* ── Timeline Panel ── */
+  .timeline-panel {
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-default);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .timeline-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .timeline-header h2 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .timeline-header p {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .close-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+
+  .close-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+
+  .close-btn svg { width: 14px; height: 14px; }
+
+  /* ── Timeline Filters ── */
+  .timeline-filters {
+    display: flex;
+    gap: 4px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-default);
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+
+  .filter-chip {
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--border-default);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    font-family: var(--font-display);
+  }
+
+  .filter-chip:hover {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+  }
+
+  .filter-chip.active {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border-color: rgba(59,130,246,0.3);
+  }
+
+  /* ── Timeline Content ── */
+  .timeline-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  .timeline-day-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    position: relative;
+    animation: fadeInUp 0.3s ease backwards;
+  }
+
+  .timeline-item + .timeline-item {
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .timeline-item-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .timeline-item-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timeline-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+
+  .timeline-item-name {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .timeline-item-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .timeline-item-task {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .timeline-item-duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    margin-top: 3px;
+  }
+
+  .timeline-item-duration svg { width: 10px; height: 10px; opacity: 0.4; }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 4px;
+    animation: blink 1.5s ease infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .timeline-item-completed {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--accent-green);
+    font-family: var(--font-mono);
+    margin-top: 3px;
+  }
+
+  .timeline-item-completed svg { width: 10px; height: 10px; }
+
+  .timeline-group {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    margin: 4px 0;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .timeline-group .collapse-icon {
+    font-size: 10px;
+    opacity: 0.5;
+  }
+
+  .agent-color-bar {
+    width: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  .color-ducki { background: var(--accent-amber); }
+  .color-linus { background: var(--accent-cyan); }
+  .color-pixel { background: var(--accent-pink); }
+  .color-shakespeare { background: var(--accent-amber); }
+  .color-tesla { background: var(--accent-purple); }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+  /* ── Tooltip ── */
+  .tooltip-trigger {
+    position: relative;
+    cursor: help;
+  }
+
+  .tooltip-trigger .tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 5px 9px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: var(--shadow-elevated);
+    z-index: 10;
+  }
+
+  .tooltip-trigger:hover .tooltip {
+    opacity: 1;
+  }
+
+  /* ── Empty State ── */
+  .no-active-task {
+    color: var(--text-tertiary);
+    font-style: italic;
+    font-size: 11.5px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+    .timeline-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 360px;
+      z-index: 100;
+      box-shadow: -8px 0 40px rgba(0,0,0,0.5);
+    }
+    .app.timeline-closed .timeline-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- ── Main Content ── -->
+  <div class="main">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>Squad Status</h1>
+        <p>Real-time agent activity dashboard</p>
+      </div>
+      <div class="header-actions">
+        <div class="tooltip-trigger">
+          <button class="btn" onclick="refreshDashboard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Refresh
+            <span class="refresh-badge" id="refreshBadge">17 updates</span>
+          </button>
+          <span class="tooltip">17 pending activity updates</span>
+        </div>
+        <button class="btn" id="timelineToggle" onclick="toggleTimeline()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          Timeline
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Bar -->
+    <div class="summary-bar">
+      <div class="summary-chip chip-working">
+        <span class="dot"></span>
+        1 working
+      </div>
+      <div class="summary-chip chip-idle">
+        <span class="dot"></span>
+        4 idle
+      </div>
+      <div class="summary-chip chip-error">
+        <span class="dot"></span>
+        0 errors
+      </div>
+    </div>
+
+    <!-- Coordinator Card -->
+    <div class="coordinator-card">
+      <div class="coordinator-row">
+        <div class="coordinator-info">
+          <div class="avatar avatar-coordinator">
+            🦆
+            <span class="status-ring working"></span>
+          </div>
+          <div class="coordinator-name-block">
+            <h2>
+              Ducki
+              <span class="status-badge badge-working">● Working</span>
+            </h2>
+            <div class="role">PM / Coordinator</div>
+          </div>
+        </div>
+        <div class="coordinator-meta">
+          <span class="task-label">Chatting</span>
+          <span class="meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Active just now
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connector -->
+    <div class="connector"></div>
+
+    <!-- Agents Grid -->
+    <div class="agents-grid">
+
+      <!-- Linus -->
+      <div class="agent-card" onclick="showAgentDetail('linus')">
+        <div class="agent-card-top">
+          <div class="avatar avatar-linus">
+            🤖
+            <span class="status-ring idle"></span>
+          </div>
+          <div class="agent-name-block">
+            <h3>Linus</h3>
+            <div class="role">Backend & DevOps</div>
+          </div>
+        </div>
+        <div class="agent-card-body">
+          <div class="agent-task">
+            <span class="last-task-label">Last completed:</span>
+            Deployed Squad Status v2 to production
+          </div>
+          <div class="agent-footer">
+            <span class="last-active stale-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              59m ago
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pixel -->
+      <div class="agent-card" onclick="showAgentDetail('pixel')">
+        <div class="agent-card-top">
+          <div class="avatar avatar-pixel">
+            🎨
+            <span class="status-ring idle"></span>
+          </div>
+          <div class="agent-name-block">
+            <h3>Pixel</h3>
+            <div class="role">Frontend Engineer</div>
+          </div>
+        </div>
+        <div class="agent-card-body">
+          <div class="agent-task">
+            <span class="last-task-label">Last completed:</span>
+            Full style review on Squad Status
+          </div>
+          <div class="agent-footer">
+            <span class="last-active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              12m ago
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shakespeare -->
+      <div class="agent-card stale" onclick="showAgentDetail('shakespeare')">
+        <div class="agent-card-top">
+          <div class="avatar avatar-shakespeare">
+            📜
+            <span class="status-ring idle"></span>
+          </div>
+          <div class="agent-name-block">
+            <h3>Shakespeare</h3>
+            <div class="role">Content & Growth</div>
+          </div>
+        </div>
+        <div class="agent-card-body">
+          <div class="agent-task">
+            <span class="last-task-label">Last completed:</span>
+            Updated onboarding copy for v2
+          </div>
+          <div class="agent-footer">
+            <span class="last-active stale-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              10h ago
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tesla -->
+      <div class="agent-card" onclick="showAgentDetail('tesla')">
+        <div class="agent-card-top">
+          <div class="avatar avatar-tesla">
+            ⚡
+            <span class="status-ring idle"></span>
+          </div>
+          <div class="agent-name-block">
+            <h3>Tesla</h3>
+            <div class="role">QA & Research</div>
+          </div>
+        </div>
+        <div class="agent-card-body">
+          <div class="agent-task">
+            <span class="last-task-label">Last completed:</span>
+            Regression tests on deploy pipeline
+          </div>
+          <div class="agent-footer">
+            <span class="last-active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              2h ago
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Timeline Panel ── -->
+  <div class="timeline-panel" id="timelinePanel">
+    <div class="timeline-header">
+      <div>
+        <h2>Activity Timeline</h2>
+        <p>Today's squad activity</p>
+      </div>
+      <button class="close-btn" onclick="toggleTimeline()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="timeline-filters">
+      <button class="filter-chip active" onclick="filterTimeline(this, 'all')">All</button>
+      <button class="filter-chip" onclick="filterTimeline(this, 'ducki')">
+        <span style="color:var(--accent-amber)">●</span> Ducki
+      </button>
+      <button class="filter-chip" onclick="filterTimeline(this, 'linus')">
+        <span style="color:var(--accent-cyan)">●</span> Linus
+      </button>
+      <button class="filter-chip" onclick="filterTimeline(this, 'pixel')">
+        <span style="color:var(--accent-pink)">●</span> Pixel
+      </button>
+      <button class="filter-chip" onclick="filterTimeline(this, 'shakespeare')">
+        <span style="color:var(--accent-amber)">●</span> Shakespeare
+      </button>
+      <button class="filter-chip" onclick="filterTimeline(this, 'tesla')">
+        <span style="color:var(--accent-purple)">●</span> Tesla
+      </button>
+    </div>
+
+    <!-- Timeline Items -->
+    <div class="timeline-content">
+      <div class="timeline-day-label">Today</div>
+
+      <!-- Live: Ducki chatting -->
+      <div class="timeline-item" data-agent="ducki">
+        <div class="agent-color-bar color-ducki"></div>
+        <div class="timeline-item-avatar avatar-coordinator" style="width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;">🦆</div>
+        <div class="timeline-item-body">
+          <div class="timeline-item-header">
+            <span class="timeline-item-name">Ducki (Main)</span>
+            <span class="timeline-item-time">20:52</span>
+          </div>
+          <div class="timeline-item-task">
+            Chatting <span class="live-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pixel: style review -->
+      <div class="timeline-item" data-agent="pixel">
+        <div class="agent-color-bar color-pixel"></div>
+        <div class="timeline-item-avatar avatar-pixel" style="width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;">🎨</div>
+        <div class="timeline-item-body">
+          <div class="timeline-item-header">
+            <span class="timeline-item-name">Pixel</span>
+            <span class="timeline-item-time">20:52</span>
+          </div>
+          <div class="timeline-item-task">Full style review on Squad Status</div>
+          <div class="timeline-item-completed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            Completed · 7m
+          </div>
+        </div>
+      </div>
+
+      <!-- Linus: deploy -->
+      <div class="timeline-item" data-agent="linus">
+        <div class="agent-color-bar color-linus"></div>
+        <div class="timeline-item-avatar avatar-linus" style="width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;">🤖</div>
+        <div class="timeline-item-body">
+          <div class="timeline-item-header">
+            <span class="timeline-item-name">Linus</span>
+            <span class="timeline-item-time">20:12</span>
+          </div>
+          <div class="timeline-item-task">Deploying Squad Status v2 to production</div>
+          <div class="timeline-item-completed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            Completed · 1m
+          </div>
+        </div>
+      </div>
+
+      <!-- Grouped: Ducki chatting sessions -->
+      <div class="timeline-item" data-agent="ducki">
+        <div class="agent-color-bar color-ducki"></div>
+        <div class="timeline-item-avatar avatar-coordinator" style="width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;">🦆</div>
+        <div class="timeline-item-body">
+          <div class="timeline-item-header">
+            <span class="timeline-item-name">Ducki (Main)</span>
+            <span class="timeline-item-time">19:35 – 20:11</span>
+          </div>
+          <div class="timeline-item-task">Chatting</div>
+          <div class="timeline-item-duration">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            3 sessions · 36m total
+          </div>
+        </div>
+      </div>
+
+      <!-- Pixel: loading wheel fix -->
+      <div class="timeline-item" data-agent="pixel">
+        <div class="agent-color-bar color-pixel"></div>
+        <div class="timeline-item-avatar avatar-pixel" style="width:30px;height:30px;border-radius:8px;font-size:14px;display:flex;align-items:center;justify-content:center;">🎨</div>
+        <div class="timeline-item-body">
+          <div class="timeline-item-header">
+            <span class="timeline-item-name">Pixel</span>
+            <span class="timeline-item-time">19:36</span>
+          </div>
+          <div class="timeline-item-task">Fixing loading wheel visibility + end state</div>
+          <div class="timeline-item-completed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            Completed · 4m
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTimeline() {
+    const app = document.getElementById('app');
+    app.classList.toggle('timeline-closed');
+  }
+
+  function filterTimeline(chipEl, agent) {
+    // Update active chip
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chipEl.classList.add('active');
+
+    // Filter items
+    document.querySelectorAll('.timeline-item').forEach(item => {
+      if (agent === 'all' || item.dataset.agent === agent) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  function refreshDashboard() {
+    const badge = document.getElementById('refreshBadge');
+    badge.textContent = '0 updates';
+    badge.style.opacity = '0.4';
+
+    // Simulate refresh animation
+    document.querySelectorAll('.agent-card, .coordinator-card').forEach(card => {
+      card.style.animation = 'none';
+      card.offsetHeight; // trigger reflow
+      card.style.animation = '';
+    });
+
+    setTimeout(() => {
+      badge.textContent = '0 updates';
+    }, 300);
+  }
+
+  function showAgentDetail(agent) {
+    // Placeholder for agent detail view
+    console.log('Show detail for:', agent);
+  }
+</script>
+
+</body>
+</html>

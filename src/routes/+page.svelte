@@ -96,8 +96,8 @@
 	}
 </script>
 
-<div>
-	<div>
+<div class="app" class:timeline-closed={!timelineOpen}>
+	<div class="main">
 		<Header
 			{viewMode}
 			{sortBy}
@@ -118,8 +118,8 @@
 		/>
 
 		{#if loading}
-			<div>
-				<div></div>
+			<div class="loading-container">
+				<div class="spinner"></div>
 				<p>Loading squad status...</p>
 			</div>
 		{:else}
@@ -135,3 +135,60 @@
 
 	<Timeline open={timelineOpen} onClose={toggleTimeline} />
 </div>
+
+<style>
+	.app {
+		display: grid;
+		grid-template-columns: 1fr 380px;
+		min-height: 100vh;
+		position: relative;
+		z-index: 1;
+	}
+
+	.app.timeline-closed {
+		grid-template-columns: 1fr;
+	}
+
+	.main {
+		padding: 32px 40px;
+		overflow-y: auto;
+	}
+
+	.loading-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 60px 20px;
+		animation: fadeInUp 0.4s ease;
+	}
+
+	.spinner {
+		width: 32px;
+		height: 32px;
+		border: 3px solid var(--border-default);
+		border-top-color: var(--accent-blue);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+		margin-bottom: 16px;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+
+	.loading-container p {
+		color: var(--text-secondary);
+		font-size: 14px;
+	}
+
+	@media (max-width: 900px) {
+		.app {
+			grid-template-columns: 1fr;
+		}
+
+		.main {
+			padding: 24px 20px;
+		}
+	}
+</style>

@@ -52,46 +52,100 @@
 	let team = $derived(filteredAgents.filter((a) => a.agent_name !== 'Ducki (Main)'));
 </script>
 
-<div>
-	{#if filteredAgents.length === 0}
-		<div>
-			<p>No agents match your search criteria</p>
+{#if filteredAgents.length === 0}
+	<div class="empty-state">
+		<p>No agents match your search criteria</p>
+	</div>
+{:else}
+	<!-- Org Chart Layout (Card view only) -->
+	{#if viewMode === 'card'}
+		<div class="org-chart">
+			<!-- Leader Card -->
+			{#if leader}
+				<div class="leader-wrapper">
+					<AgentCard agent={leader} isLeader={true} {viewMode} />
+				</div>
+			{/if}
+
+			<!-- Connector -->
+			{#if leader && team.length > 0}
+				<div class="connector"></div>
+			{/if}
+
+			<!-- Team Grid -->
+			{#if team.length > 0}
+				<div class="agents-grid">
+					{#each team as agent (agent.agent_id)}
+						<AgentCard {agent} isLeader={false} {viewMode} />
+					{/each}
+				</div>
+			{/if}
 		</div>
 	{:else}
-		<!-- Org Chart Layout (Card view only) -->
-		{#if viewMode === 'card'}
-			<div>
-				<!-- Leader Card -->
-				{#if leader}
-					<div>
-						<div>
-							<AgentCard agent={leader} isLeader={true} {viewMode} />
-						</div>
-					</div>
-				{/if}
-
-				<!-- Team Grid -->
-				{#if team.length > 0}
-					<div>
-						<div>
-							{#each team as agent (agent.agent_id)}
-								<div>
-									<AgentCard {agent} isLeader={false} {viewMode} />
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
-		{:else}
-			<!-- Compact/Table View - Simple List -->
-			<div>
-				{#each filteredAgents as agent (agent.agent_id)}
-					<div>
-						<AgentCard {agent} isLeader={agent.agent_name === 'Ducki (Main)'} {viewMode} />
-					</div>
-				{/each}
-			</div>
-		{/if}
+		<!-- Compact/Table View - Simple List -->
+		<div class="agents-list">
+			{#each filteredAgents as agent (agent.agent_id)}
+				<AgentCard {agent} isLeader={agent.agent_name === 'Ducki (Main)'} {viewMode} />
+			{/each}
+		</div>
 	{/if}
-</div>
+{/if}
+
+<style>
+	.empty-state {
+		text-align: center;
+		padding: 60px 20px;
+		color: var(--text-tertiary);
+		font-style: italic;
+		font-size: 14px;
+	}
+
+	.org-chart {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.leader-wrapper {
+		display: flex;
+		justify-content: center;
+		max-width: 100%;
+	}
+
+	.leader-wrapper > :global(*) {
+		width: 100%;
+		max-width: 600px;
+	}
+
+	.connector {
+		display: flex;
+		justify-content: center;
+		padding: 0;
+		position: relative;
+		height: 24px;
+	}
+
+	.connector::before {
+		content: '';
+		width: 1px;
+		height: 100%;
+		background: linear-gradient(180deg, var(--accent-blue), var(--border-default));
+	}
+
+	.agents-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 10px;
+	}
+
+	.agents-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	@media (max-width: 900px) {
+		.agents-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
