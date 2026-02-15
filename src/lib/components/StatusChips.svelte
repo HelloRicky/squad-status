@@ -177,4 +177,10 @@
 	.filter-clear:hover {
 		color: var(--text-primary);
 	}
+
+	@media (max-width: 640px) {
+		.summary-bar {
+			margin-bottom: 14px;
+		}
+	}
 </style>

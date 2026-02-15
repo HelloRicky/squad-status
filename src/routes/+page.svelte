@@ -1,17 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Agent, ViewMode, SortBy, StatusFilter } from '$lib/types';
+	import type { Agent, StatusFilter } from '$lib/types';
 	import Header from '$lib/components/Header.svelte';
-	import SearchBar from '$lib/components/SearchBar.svelte';
 	import StatusChips from '$lib/components/StatusChips.svelte';
 	import AgentGrid from '$lib/components/AgentGrid.svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
 
 	let agents: Agent[] = $state([]);
 	let loading = $state(true);
-	let viewMode: ViewMode = $state('card');
-	let sortBy: SortBy = $state('status');
-	let searchQuery = $state('');
 	let statusFilter: StatusFilter = $state('all');
 	let timelineOpen = $state(false);
 	let refreshCountdown = $state(30);
@@ -21,12 +17,6 @@
 	let countdownInterval: ReturnType<typeof setInterval>;
 
 	onMount(() => {
-		// Load preferences from localStorage
-		if (typeof window !== 'undefined') {
-			viewMode = (localStorage.getItem('viewMode') as ViewMode) || 'card';
-			sortBy = (localStorage.getItem('sortBy') as SortBy) || 'status';
-		}
-
 		fetchAgents();
 		startAutoRefresh();
 
@@ -71,24 +61,6 @@
 		startAutoRefresh();
 	}
 
-	function handleViewModeChange(mode: ViewMode) {
-		viewMode = mode;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('viewMode', mode);
-		}
-	}
-
-	function handleSortChange(sort: SortBy) {
-		sortBy = sort;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('sortBy', sort);
-		}
-	}
-
-	function handleSearch(query: string) {
-		searchQuery = query;
-	}
-
 	function handleFilterChange(filter: StatusFilter) {
 		statusFilter = filter;
 	}
@@ -101,17 +73,11 @@
 <div class="app" class:timeline-closed={!timelineOpen}>
 	<div class="main">
 		<Header
-			{viewMode}
-			{sortBy}
 			{refreshCountdown}
-			onViewModeChange={handleViewModeChange}
-			onSortChange={handleSortChange}
 			onRefresh={handleManualRefresh}
 			onToggleTimeline={toggleTimeline}
 			{timelineOpen}
 		/>
-
-		<SearchBar value={searchQuery} onChange={handleSearch} />
 
 		<StatusChips
 			{agents}
@@ -127,9 +93,9 @@
 		{:else}
 			<AgentGrid
 				{agents}
-				{viewMode}
-				{sortBy}
-				{searchQuery}
+				viewMode="card"
+				sortBy="status"
+				searchQuery=""
 				{statusFilter}
 			/>
 		{/if}
@@ -191,6 +157,12 @@
 
 		.main {
 			padding: 24px 20px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.main {
+			padding: 16px;
 		}
 	}
 </style>
