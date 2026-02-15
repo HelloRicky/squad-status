@@ -96,11 +96,9 @@
 	}
 </script>
 
-<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white overflow-x-hidden">
-	<div class="container mx-auto px-4 py-6 max-w-5xl transition-transform duration-400 ease-out" 
-	     class:shifted={timelineOpen}>
-		
-		<Header 
+<div>
+	<div>
+		<Header
 			{viewMode}
 			{sortBy}
 			{refreshCountdown}
@@ -113,19 +111,19 @@
 
 		<SearchBar value={searchQuery} onChange={handleSearch} />
 
-		<StatusChips 
+		<StatusChips
 			{agents}
 			currentFilter={statusFilter}
 			onFilterChange={handleFilterChange}
 		/>
 
 		{#if loading}
-			<div class="text-center py-16">
-				<div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-purple-500 mb-4"></div>
-				<p class="text-slate-400">Loading squad status...</p>
+			<div>
+				<div></div>
+				<p>Loading squad status...</p>
 			</div>
 		{:else}
-			<AgentGrid 
+			<AgentGrid
 				{agents}
 				{viewMode}
 				{sortBy}
@@ -135,24 +133,5 @@
 		{/if}
 	</div>
 
-	<Timeline bind:open={timelineOpen} onClose={toggleTimeline} />
+	<Timeline open={timelineOpen} onClose={toggleTimeline} />
 </div>
-
-<style>
-	.shifted {
-		transform: translateX(-240px);
-	}
-
-	@media (max-width: 1024px) {
-		.shifted {
-			transform: translateX(-120px);
-		}
-	}
-
-	@media (max-width: 768px) {
-		.shifted {
-			transform: translateX(0);
-			filter: brightness(0.7);
-		}
-	}
-</style>
