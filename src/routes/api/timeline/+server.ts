@@ -11,7 +11,16 @@ export const GET: RequestHandler = async ({ url }) => {
 		let endpoint = `/rest/v1/agent_status_history?select=*&order=started_at.desc&offset=${offset}&limit=${limit}&status=neq.idle`;
 
 		if (agentName && agentName !== 'all') {
-			endpoint += `&agent_id=ilike.${encodeURIComponent(agentName)}`;
+			// Map display names to agent_id values
+			const agentIdMap: Record<string, string> = {
+				'Ducki (Main)': 'ducki',
+				'Pixel': 'pixel',
+				'Linus': 'linus',
+				'Tesla': 'tesla',
+				'Shakespeare': 'shakespeare'
+			};
+			const agentId = agentIdMap[agentName] || agentName.toLowerCase();
+			endpoint += `&agent_id=eq.${encodeURIComponent(agentId)}`;
 		}
 
 		const response = await supabaseFetch(endpoint, {
