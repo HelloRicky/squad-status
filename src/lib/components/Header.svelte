@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ThemeToggle from './ThemeToggle.svelte';
+
 	interface Props {
 		refreshCountdown: number;
 		onRefresh: () => void;
@@ -16,6 +18,9 @@
 		</div>
 
 		<div class="header-actions">
+			<!-- Theme Toggle -->
+			<ThemeToggle />
+
 			<!-- Refresh Button -->
 			<button class="btn" onclick={onRefresh} aria-label="Refresh agent status">
 				<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
