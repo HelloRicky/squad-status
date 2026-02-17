@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack, tick } from 'svelte';
 	import type { Activity } from '$lib/types';
 	import { agentAvatars, agentTimelineColors, resolveAgentName } from '$lib/types';
 	import { formatDate, formatTime } from '$lib/utils';
@@ -16,6 +17,7 @@
 	let hasMore = $state(true);
 	let offset = $state(0);
 	let filter = $state('all');
+	let scrollContainer: HTMLElement | undefined = $state();
 
 	let displayActivities = $derived.by(() => {
 		const live = activities.filter(a => !a.ended_at);
@@ -65,7 +67,7 @@
 		if (open) {
 			// Track refreshKey so we reload when it changes
 			refreshKey;
-			loadTimeline(false);
+			untrack(() => loadTimeline(false));
 		}
 	});
 
@@ -87,9 +89,20 @@
 				}
 
 				hasMore = data.hasMore;
+
+				// Auto-fill: if content doesn't fill viewport and we have more data, load next page
+				if (hasMore) {
+					await tick();
+					if (scrollContainer && scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
+						loading = false;
+						loadTimeline(true);
+						return;  // Skip the finally block's loading = false
+					}
+				}
 			}
 		} catch (error) {
 			console.error('Failed to load timeline:', error);
+			hasMore = false;
 		} finally {
 			loading = false;
 		}
@@ -174,7 +187,7 @@
 		</div>
 
 		<!-- Timeline Content -->
-		<div class="timeline-content" onscroll={handleScroll}>
+		<div class="timeline-content" onscroll={handleScroll} bind:this={scrollContainer}>
 			{#if loading && activities.length === 0}
 				<div class="loading-state">
 					<div class="spinner"></div>
