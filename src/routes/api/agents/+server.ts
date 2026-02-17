@@ -2,7 +2,6 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { supabaseFetch } from '$lib/server/supabase';
 import type { Agent } from '$lib/types';
-import { resolveAgentName } from '$lib/types';
 
 export const GET: RequestHandler = async () => {
 	try {
@@ -19,19 +18,17 @@ export const GET: RequestHandler = async () => {
 			);
 			const history = await historyResponse.json();
 
-			// Build a map of agent_name -> most recent task
+			// Build a map of agent_id -> most recent task
 			const lastTaskMap: Record<string, string> = {};
 			for (const entry of history) {
-				const name = resolveAgentName(entry.agent_name ?? entry.agent_id);
-				if (!lastTaskMap[name]) {
-					lastTaskMap[name] = entry.task;
+				if (entry.task && !lastTaskMap[entry.agent_id]) {
+					lastTaskMap[entry.agent_id] = entry.task;
 				}
 			}
 
 			// Enrich idle agents with their last task
 			for (const agent of idleAgents) {
-				const name = resolveAgentName(agent.agent_name);
-				agent.last_task = lastTaskMap[name] || null;
+				agent.last_task = lastTaskMap[agent.agent_id] || null;
 			}
 		}
 
