@@ -1,8 +1,5 @@
 name = "squad-status"
 compatibility_date = "2024-01-01"
+pages_build_output_dir = ".svelte-kit/cloudflare"
 
-[site]
-bucket = "."
-
-# This configuration is for Cloudflare Pages
-# No additional settings needed for a static HTML site
+# SvelteKit Cloudflare Pages configuration

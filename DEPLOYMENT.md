@@ -1,186 +1,90 @@
-# Deployment Guide
+# Squad Status - SvelteKit Deployment Documentation
 
-## Step 1: Create GitHub Repository
+## Deployment Setup (Feb 14, 2026)
 
-Since automated repo creation requires additional permissions, create it manually:
+### Cloudflare Pages Configuration
 
-1. Go to https://github.com/new
-2. Repository name: `squad-status`
-3. Description: `Real-time AI agent status tracker`
-4. Visibility: **Public**
-5. Click "Create repository"
+**Project:** squad-status  
+**Production URL:** https://squad-status.pages.dev  
+**Dev URL:** https://dev.squad-status.pages.dev
 
-Then push your local code:
+### Environment Variables (Cloudflare Pages)
 
-```bash
-cd ~/.openclaw/workspace-linus/squad-status
-
-# Add remote (replace YOUR_USERNAME)
-git remote add origin git@github.com:YOUR_USERNAME/squad-status.git
-
-# Push code
-git branch -M main
-git push -u origin main
-```
-
-## Step 2: Create Supabase Tables
-
-1. Go to your Supabase project: https://supabase.com/dashboard/project/your-project
-2. Navigate to **SQL Editor** (left sidebar)
-3. Click **+ New Query**
-4. Paste the SQL from `README.md` (the CREATE TABLE commands)
-5. Click **Run** or press `Ctrl+Enter`
-
-You should see:
-- `agent_status` table created
-- `agent_status_history` table created
-- RLS policies enabled
-- 5 agents seeded (ducki, pixel, linus, tesla, shakespeare)
-
-## Step 3: Deploy to Cloudflare Pages
-
-### Option A: Via Dashboard (Recommended)
-
-1. Go to https://dash.cloudflare.com/
-2. Click **Workers & Pages** in the left sidebar
-3. Click **Create application** → **Pages** → **Connect to Git**
-4. Authorize GitHub if needed
-5. Select your `squad-status` repository
-6. Configure build settings:
-   - **Project name**: `squad-status` (or your choice)
-   - **Production branch**: `main`
-   - **Build command**: (leave empty)
-   - **Build output directory**: `/`
-   - **Root directory**: `/`
-7. Click **Save and Deploy**
-
-Your site will be live at: `https://squad-status.pages.dev`
-
-### Option B: Via Wrangler CLI
+Set via Wrangler CLI:
 
 ```bash
-# Install Wrangler if needed
-npm install -g wrangler
-
-# Login to Cloudflare
-wrangler login
-
-# Deploy
-cd ~/.openclaw/workspace-linus/squad-status
-wrangler pages deploy . --project-name=squad-status
+wrangler pages secret put SUPABASE_URL --project-name=squad-status
+wrangler pages secret put SUPABASE_SERVICE_KEY --project-name=squad-status
 ```
 
-## Step 4: Verify Everything Works
+**Values:**
+- `SUPABASE_URL`: `https://eetgrdpfxvlefcvshvjx.supabase.co`
+- `SUPABASE_SERVICE_KEY`: From `MC_SUPABASE_SERVICE_KEY` env var
 
-1. **Check the Supabase tables:**
-   ```bash
-   curl -s "$MC_SUPABASE_URL/rest/v1/agent_status" \
-     -H "apikey: $MC_SUPABASE_ANON_KEY" | jq
-   ```
+### GitHub Secrets
 
-   You should see 5 agents with `idle` status.
+Required secrets for GitHub Actions workflow (`.github/workflows/deploy.yml`):
 
-2. **Test a status update:**
-   ```bash
-   cd ~/.openclaw/workspace-linus/squad-status
-   ./hooks/agent-start.sh linus "Testing deployment"
-   ```
+- ✓ `SUPABASE_URL` - Set 2026-02-14
+- ✓ `SUPABASE_SERVICE_KEY` - Set 2026-02-14
+- ✓ `CLOUDFLARE_API_TOKEN` - Set 2026-02-13
+- ✓ `CLOUDFLARE_ACCOUNT_ID` - Set 2026-02-14 (`0b72cf677a2a0b8ae91a911d4df33591`)
+- ✓ `DISCORD_WEBHOOK` - Set 2026-02-13
 
-3. **Visit your Cloudflare Pages URL:**
-   - You should see all 5 agents
-   - Linus should show as "working" with task "Testing deployment"
-   - The page should auto-refresh every 30 seconds
+### Configuration Files
 
-4. **Set back to idle:**
-   ```bash
-   ./hooks/agent-done.sh linus
-   ```
+**wrangler.toml:**
+```toml
+name = "squad-status"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".svelte-kit/cloudflare"
 
-## Step 5: Bookmark and Share
-
-Your status page is now publicly accessible! Share the URL with your team:
-
-- **Example URL**: `https://squad-status.pages.dev`
-- No port forwarding needed ✅
-- No authentication required ✅
-- Mobile-friendly ✅
-- Auto-updates every 30 seconds ✅
-
-## Custom Domain (Optional)
-
-To use a custom domain like `status.yourdomain.com`:
-
-1. In Cloudflare Pages settings, click **Custom domains**
-2. Add your domain
-3. Update your DNS records as instructed
-4. Wait for SSL certificate provisioning (~5 minutes)
-
-## Troubleshooting
-
-### Tables not found error
-
-Run the SQL setup from Step 2.
-
-### Status page shows "Error loading"
-
-1. Check browser console for errors
-2. Verify `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `index.html`
-3. Ensure RLS policies allow public SELECT
-
-### Hooks return errors
-
-1. Verify environment variables are set:
-   ```bash
-   echo $MC_SUPABASE_URL
-   echo $MC_SUPABASE_SERVICE_KEY
-   ```
-2. Make sure you're using `SERVICE_KEY` (not `ANON_KEY`) for updates
-3. Check RLS policies allow INSERT/UPDATE
-
-### Cloudflare Pages deployment fails
-
-1. Ensure repository is public
-2. Check that GitHub integration is authorized
-3. Verify build settings are empty (no build step needed)
-
-## Maintenance
-
-### Adding a New Agent
-
-```sql
-INSERT INTO agent_status (agent_id, agent_name, status)
-VALUES ('newagent', 'New Agent Name', 'idle');
+# SvelteKit Cloudflare Pages configuration
 ```
 
-### Removing an Agent
+**svelte.config.js:**
+- Adapter: `@sveltejs/adapter-cloudflare`
+- Build output: `.svelte-kit/cloudflare`
 
-```sql
-DELETE FROM agent_status WHERE agent_id = 'oldagent';
-```
+### Deployment Process
 
-### Viewing Status History
+1. **Automatic Deployment:**
+   - Pushing to `main` or `dev` branches triggers GitHub Actions
+   - Workflow builds SvelteKit app and deploys to Cloudflare Pages
+   - Branch `dev` deploys to `dev.squad-status.pages.dev`
+   - Branch `main` deploys to `squad-status.pages.dev`
 
-```sql
-SELECT * FROM agent_status_history
-WHERE agent_id = 'linus'
-ORDER BY started_at DESC
-LIMIT 10;
-```
-
-## Updating the Status Page
-
-To update the design or functionality:
-
-1. Edit `index.html` locally
-2. Test by opening it in a browser
-3. Commit and push to GitHub:
+2. **Manual Deployment:**
    ```bash
-   git add index.html
-   git commit -m "Update status page design"
-   git push
+   npm run build
+   wrangler pages deploy .svelte-kit/cloudflare --project-name=squad-status
    ```
-4. Cloudflare Pages auto-deploys on every push to `main`
 
----
+### Verification (Feb 14, 2026)
 
-**Need help?** Check the main [README.md](README.md) or [HOOKS.md](HOOKS.md)
+✓ Site loads: https://dev.squad-status.pages.dev (HTTP 200)  
+✓ Agents API: `/api/agents` - Returns 5 agents  
+✓ Timeline API: `/api/timeline` - Returns 50 activities with pagination
+
+### Notes
+
+- Repo history was rewritten on Feb 14, 2026 to remove hardcoded credentials
+- All environment variables are now injected at build time
+- Discord notifications are sent on successful deployments
+- The SvelteKit adapter creates edge functions for API routes
+
+### Troubleshooting
+
+If deployment fails:
+1. Check GitHub Actions logs: `gh run list && gh run view <run-id>`
+2. Verify Cloudflare Pages secrets: `wrangler pages secret list --project-name=squad-status`
+3. Check build output locally: `npm run build`
+4. Verify environment variables are available at build time
+
+### Migration from Static HTML
+
+The project was migrated from static HTML to SvelteKit on Feb 14, 2026:
+- Previous deployment used basic HTML/JS/CSS
+- New deployment uses SvelteKit with SSR and edge functions
+- API routes moved from external calls to SvelteKit endpoints
+- Environment variables now properly injected instead of hardcoded

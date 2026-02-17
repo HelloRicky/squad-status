@@ -1,154 +1,249 @@
 # Agent Squad Status Tracker
 
-A simple, beautiful status page to monitor your AI agent squad in real-time.
+A modern, secure status page to monitor your AI agent squad in real-time. Built with SvelteKit and deployed to Cloudflare Pages.
 
-## Features
+## ✨ Features
 
-- 🚀 Real-time status monitoring
-- 📱 Mobile-friendly design
-- 🔄 Auto-refreshes every 30 seconds
-- 🎨 Clean, modern UI
-- 🔒 Read-only public access (no authentication needed)
-- ⚡ Deployed to Cloudflare Pages for instant global access
+- 🚀 **Real-time monitoring** — Track agent status with auto-refresh
+- 🔒 **Secure** — Server-side API routes, credentials never exposed to clients
+- 📱 **Responsive** — Mobile-optimized design with multiple view modes
+- 🎨 **Beautiful UI** — Polished design with smooth animations
+- ⚡ **Fast** — SvelteKit + Cloudflare Pages for global performance
+- 🔍 **Powerful filtering** — Search, sort, and filter agents by status
+- 📊 **Activity timeline** — View historical agent activity with infinite scroll
 
-## Setup
+## 🏗️ Tech Stack
 
-### 1. Create Supabase Tables
+- **Frontend**: SvelteKit 2 + TypeScript + Tailwind CSS v4
+- **Backend**: SvelteKit API routes (server-side)
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Cloudflare Pages
+- **Fonts**: EB Garamond (serif) + Inter (sans-serif)
 
-Run this SQL in your Supabase SQL Editor:
+## 🚀 Quick Start
 
-```sql
--- Current status (quick lookup)
-CREATE TABLE IF NOT EXISTS agent_status (
-  agent_id TEXT PRIMARY KEY,
-  agent_name TEXT,
-  status TEXT DEFAULT 'idle',
-  current_task TEXT,
-  last_active_at TIMESTAMPTZ DEFAULT now()
-);
+### Prerequisites
 
--- History (SCD Type 2)
-CREATE TABLE IF NOT EXISTS agent_status_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  agent_id TEXT,
-  status TEXT,
-  task TEXT,
-  started_at TIMESTAMPTZ DEFAULT now(),
-  ended_at TIMESTAMPTZ
-);
+- Node.js 20+
+- Supabase project with tables set up
+- Cloudflare account (for deployment)
 
--- Enable RLS
-ALTER TABLE agent_status ENABLE ROW LEVEL SECURITY;
-ALTER TABLE agent_status_history ENABLE ROW LEVEL SECURITY;
+### Local Development
 
--- Allow public read access
-CREATE POLICY IF NOT EXISTS "Allow public read access" ON agent_status
-  FOR SELECT USING (true);
+1. **Clone and install**:
+   ```bash
+   git clone <your-repo>
+   cd squad-status
+   npm install
+   ```
 
-CREATE POLICY IF NOT EXISTS "Allow public read access" ON agent_status_history
-  FOR SELECT USING (true);
+2. **Set up environment variables**:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` and add your Supabase credentials:
+   ```bash
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_SERVICE_KEY=your-service-key-here
+   ```
 
--- Allow updates via service key
-CREATE POLICY IF NOT EXISTS "Allow updates" ON agent_status
-  FOR UPDATE USING (true) WITH CHECK (true);
+3. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+   
+   Open http://localhost:5173
 
-CREATE POLICY IF NOT EXISTS "Allow inserts" ON agent_status
-  FOR INSERT WITH CHECK (true);
+### Database Setup
 
--- Seed agents
-INSERT INTO agent_status (agent_id, agent_name, status) VALUES
-  ('ducki', 'Ducki (Main)', 'idle'),
-  ('pixel', 'Pixel', 'idle'),
-  ('linus', 'Linus', 'idle'),
-  ('tesla', 'Tesla', 'idle'),
-  ('shakespeare', 'Shakespeare', 'idle')
-ON CONFLICT (agent_id) DO NOTHING;
-```
-
-### 2. Configure the Status Page
-
-Edit `index.html` and replace these values:
-
-```javascript
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-```
-
-### 3. Deploy to Cloudflare Pages
-
-1. Push this repo to GitHub
-2. Go to [Cloudflare Pages](https://pages.cloudflare.com)
-3. Click "Create a project"
-4. Connect your GitHub repo
-5. Use these settings:
-   - Build command: (leave empty)
-   - Build output directory: `/`
-   - Root directory: `/`
-
-That's it! Your status page will be live at `https://your-project.pages.dev`
-
-## Usage
-
-### Update Agent Status (Pre-hook)
-
-When an agent starts a task:
+Run the SQL migrations in your Supabase project:
 
 ```bash
-curl -X PATCH "$MC_SUPABASE_URL/rest/v1/agent_status?agent_id=eq.linus" \
-  -H "apikey: $MC_SUPABASE_SERVICE_KEY" \
-  -H "Authorization: Bearer $MC_SUPABASE_SERVICE_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Prefer: return=minimal" \
-  -d '{"status": "working", "current_task": "Deploy X", "last_active_at": "now()"}'
+# From the repo root
+psql -f supabase/migrations/20260214_fix_rls_policies.sql
 ```
 
-### Clear Agent Status (Post-hook)
+Or use the Supabase SQL Editor to run the migration files manually.
 
-When an agent completes a task:
+**Tables required:**
+- `agent_status` — Current status of each agent
+- `agent_status_history` — Historical activity log
+
+See [`supabase/`](./supabase/) directory for schema details.
+
+## 🌐 Deployment
+
+### Cloudflare Pages
+
+1. **Set environment variables** in Cloudflare Pages dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_KEY`
+
+2. **Configure build settings**:
+   - Build command: `npm run build`
+   - Build output directory: `.svelte-kit/cloudflare`
+   - Root directory: (leave empty)
+
+3. **Deploy**:
+   ```bash
+   npm run build
+   npx wrangler pages deploy .svelte-kit/cloudflare --project-name=squad-status
+   ```
+
+Or push to GitHub and let the Actions workflow handle deployment automatically.
+
+### GitHub Actions
+
+The `.github/workflows/deploy.yml` workflow will:
+1. Build the SvelteKit app
+2. Deploy to Cloudflare Pages
+3. Notify Discord (optional)
+
+**Required secrets**:
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_KEY`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `DISCORD_WEBHOOK` (optional)
+
+## 🔧 Configuration
+
+### View Modes
+
+- **Card**: Org-chart layout with leader + team grid (default)
+- **Compact**: Dense grid view for many agents
+- **Table**: Row-based list view
+
+User preferences are persisted in localStorage.
+
+### Agent Configuration
+
+Edit `src/lib/types.ts` to customize:
+- Agent avatars (emoji or SVG)
+- Agent roles
+- Timeline colors
+
+### Styling
+
+- Global styles: `src/app.css`
+- Tailwind config: `tailwind.config.js`
+- Component styles: scoped `<style>` blocks in `.svelte` files
+
+## 📊 API Routes
+
+### `GET /api/agents`
+
+Fetches current agent status from Supabase.
+
+**Response**:
+```json
+[
+  {
+    "agent_id": "ducki",
+    "agent_name": "Ducki (Main)",
+    "status": "working",
+    "current_task": "Reviewing PRs",
+    "last_active_at": "2026-02-14T22:00:00Z"
+  }
+]
+```
+
+### `GET /api/timeline`
+
+Fetches agent activity history with pagination.
+
+**Query params**:
+- `offset` (default: 0)
+- `limit` (default: 50)
+- `agent_name` (optional, filter by agent)
+
+**Response**:
+```json
+{
+  "activities": [...],
+  "hasMore": true
+}
+```
+
+## 🔒 Security
+
+**How credentials are protected:**
+
+1. **No client-side exposure**: Supabase credentials live in server environment variables only
+2. **Server-side API routes**: All database calls happen on the server via `/api/*` endpoints
+3. **Environment variables**: `.env` is git-ignored, credentials injected at build time
+4. **Row Level Security (RLS)**: Supabase policies enforce read-only access for public clients
+
+**What's safe to commit:**
+- ✅ Component code
+- ✅ API route code (no credentials)
+- ✅ `.env.example` (placeholder values)
+
+**Never commit:**
+- ❌ `.env` (real credentials)
+- ❌ `SUPABASE_SERVICE_KEY` anywhere
+- ❌ `.svelte-kit/` build output
+
+See [SECURITY.md](./SECURITY.md) for full details.
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+src/
+├── lib/
+│   ├── components/      # Svelte components
+│   │   ├── AgentCard.svelte
+│   │   ├── AgentGrid.svelte
+│   │   ├── Header.svelte
+│   │   ├── SearchBar.svelte
+│   │   ├── StatusChips.svelte
+│   │   └── Timeline.svelte
+│   ├── types.ts         # TypeScript types & constants
+│   └── utils.ts         # Helper functions
+├── routes/
+│   ├── api/
+│   │   ├── agents/+server.ts
+│   │   └── timeline/+server.ts
+│   ├── +layout.svelte   # Root layout
+│   └── +page.svelte     # Main page
+└── app.css              # Global styles
+```
+
+### Build Commands
 
 ```bash
-curl -X PATCH "$MC_SUPABASE_URL/rest/v1/agent_status?agent_id=eq.linus" \
-  -H "apikey: $MC_SUPABASE_SERVICE_KEY" \
-  -H "Authorization: Bearer $MC_SUPABASE_SERVICE_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Prefer: return=minimal" \
-  -d '{"status": "idle", "current_task": null, "last_active_at": "now()"}'
+npm run dev       # Start dev server
+npm run build     # Production build
+npm run preview   # Preview production build locally
+npm run check     # Type-check
 ```
 
-### Set Error Status
+## 📝 Migration Notes
 
-When an agent encounters an error:
+This is a **complete rewrite** from the previous static HTML version (`index.html`).
 
-```bash
-curl -X PATCH "$MC_SUPABASE_URL/rest/v1/agent_status?agent_id=eq.linus" \
-  -H "apikey: $MC_SUPABASE_SERVICE_KEY" \
-  -H "Authorization: Bearer $MC_SUPABASE_SERVICE_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Prefer: return=minimal" \
-  -d '{"status": "error", "current_task": "Failed: reason", "last_active_at": "now()"}'
-```
+**What changed:**
+- ✅ Static HTML → SvelteKit framework
+- ✅ Client-side Supabase calls → Server-side API routes
+- ✅ Exposed credentials → Environment variables
+- ✅ Inline styles → Tailwind CSS + scoped components
+- ✅ Monolithic file → Modular components
 
-## Environment Variables
+**What stayed the same:**
+- ✅ All features (view modes, search, timeline, filters)
+- ✅ Visual design and animations
+- ✅ Supabase database schema
+- ✅ Cloudflare Pages deployment
 
-The hooks need these environment variables:
+See `MIGRATION_PROGRESS.md` for detailed migration log.
 
-- `MC_SUPABASE_URL` - Your Supabase project URL
-- `MC_SUPABASE_SERVICE_KEY` - Your Supabase service role key (for updates)
-- `MC_SUPABASE_ANON_KEY` - Your Supabase anon key (for the public status page)
-
-## Status Values
-
-- `idle` - Agent is waiting for work (green)
-- `working` - Agent is actively working on a task (orange)
-- `error` - Agent encountered an error (red)
-
-## Tech Stack
-
-- Pure HTML/CSS/JavaScript (no build step!)
-- Supabase for real-time data
-- Cloudflare Pages for hosting
-
-## License
+## 📜 License
 
 MIT
-# CI/CD Test
+
+## 🙋 Support
+
+For issues or questions, check the repository issues or reach out to the team.
