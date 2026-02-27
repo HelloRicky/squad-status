@@ -48,6 +48,14 @@ export const agentAvatars: Record<string, { emoji?: string; svg?: string; color:
 	Shakespeare: {
 		emoji: '📜',
 		color: 'linear-gradient(135deg, #f59e0b, #eab308)'
+	},
+	'Hunter (Job Hunter)': {
+		emoji: '🎯',
+		color: 'linear-gradient(135deg, #10b981, #059669)'
+	},
+	'Hunter': {
+		emoji: '🎯',
+		color: 'linear-gradient(135deg, #10b981, #059669)'
 	}
 };
 
@@ -57,7 +65,9 @@ export const agentRoles: Record<string, string> = {
 	Pixel: 'Frontend Engineer',
 	Linus: 'Backend & DevOps',
 	Tesla: 'QA & Research',
-	Shakespeare: 'Content & Growth'
+	Shakespeare: 'Content & Growth',
+	'Hunter (Job Hunter)': 'Job Hunter',
+	'Hunter': 'Job Hunter'
 };
 
 export const agentTimelineColors: Record<string, string> = {
@@ -66,7 +76,9 @@ export const agentTimelineColors: Record<string, string> = {
 	Pixel: 'var(--accent-pink)',
 	Linus: 'var(--accent-cyan)',
 	Tesla: 'var(--accent-purple)',
-	Shakespeare: 'var(--accent-amber)'
+	Shakespeare: 'var(--accent-amber)',
+	'Hunter (Job Hunter)': 'var(--accent-emerald)',
+	'Hunter': 'var(--accent-emerald)'
 };
 
 /**
